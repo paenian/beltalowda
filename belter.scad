@@ -15,6 +15,8 @@ bracket_thick = 6;
 z_rear_offset = 100;
 bed_lift = in*1/16; //put a little insulation under the bed beams
 
+chamfer = 1.5;
+
 part = 100;
 
 if(part == 0){
@@ -32,11 +34,6 @@ if(part == 2){
     z_bracket();
 }
 
-if(part == 2){
-    echo("Cut 2 Z brackets!");
-    projection(cut = false) z_bracket();
-}
-
 if(part == 100){
     assembled();
 }
@@ -47,7 +44,10 @@ module assembled(){
     for(i=[-1,.15,1]) for(j=[0,1]) mirror([j,0,0])
         translate([-length/2-bracket_thick/2,i*(length/2-beam*3),0]) rotate([0,-90,0]) rotate([0,0,-90]) side_bracket(feet=true);
     
-    // brackets
+    //z brackets
+    for(i=[0,1]) mirror([i,0,0]) translate([length/2+bracket_thick/2,z_rear_offset,beam]) rotate([0,90,0]) rotate([0,0,90]) z_bracket();
+    
+    //y brackets - two adjust to tension the belt, two are fixed.
     
 }
 
@@ -82,12 +82,48 @@ module frame(){
     #translate([0,0,beam*2+in/16+in/4]) cube([400,400,in/8], center=true);
 }
 
-module z_bracket(){
-    
+module z_bracket(cut = false, thick=bracket_thick){
+    difference(){
+        union(){
+            hull(){
+                for(i=[-10,10]) for(j=[-30,50]) translate([i,j,0]){
+                    translate([0,0,-chamfer/2]) cylinder(r=10, h=thick-chamfer, center=true);
+                    cylinder(r=10-chamfer, h=thick, center=true);
+                }
+                
+                for(i=[-30,30]) for(j=[-30]) translate([i,j,0]){
+                    translate([0,0,-chamfer/2]) cylinder(r=10, h=thick-chamfer, center=true);
+                    cylinder(r=10-chamfer, h=thick, center=true);
+                }
+            }
+            if(cut == false) hull(){
+                for(i=[-10,10]) for(j=[-40+chamfer,60-chamfer]) translate([i,j,0]){
+                    translate([0,0,-thick/2]) cylinder(r=chamfer, h=.1);
+                }
+                translate([0,40-chamfer,0]){
+                    translate([0,0,-thick/2]) cylinder(r=chamfer, h=.1);
+                }
+                
+                for(j=[-30,50]) translate([0,j,0]){
+                    translate([0,0,-thick/2]) cylinder(r=chamfer, h=thick*2);
+                }
+            }
+        }
+        
+        // screwholes
+        for(i=[-10,10]) for(j=[-10,30,50]) translate([i,j,0]){
+            cylinder(r=m5_rad, h=thick*2, center=true);
+            cylinder(r=m5_cap_rad, h=thick*2);
+        }
+        
+        for(i=[-30,30]) translate([i,-30,0]){
+            cylinder(r=m5_rad, h=thick*2, center=true);
+            cylinder(r=m5_cap_rad, h=thick*2);
+        }
+    }
 }
 
 module side_bracket(feet = false, cut = false, thick=bracket_thick){
-    chamfer = 1.5;
     difference(){
         union(){
             hull(){
