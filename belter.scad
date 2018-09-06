@@ -10,6 +10,11 @@ roller_drop = 1;
 roller_len = in*16;
 roller_offset = 10;
 
+roller_inside_rad = 49/2-.2;
+bearing_rad = 26/2+.125;
+bearing_thick = 8;
+bearing_inset = in*2;
+
 bracket_thick = 6;
 
 z_rear_offset = 100;
@@ -17,7 +22,7 @@ bed_lift = in*1/16; //put a little insulation under the bed beams
 
 chamfer = 1.5;
 
-part = 100;
+part = 7;
 
 if(part == 0){
     echo("Print 6 side brackets!");
@@ -32,6 +37,11 @@ if(part == 1){
 if(part == 2){
     echo("Print 2 Z brackets!");
     z_bracket();
+}
+
+if(part == 7){
+    echo("Print 3 roller mounts!");
+    mirror([0,0,1]) roller_mount();
 }
 
 if(part == 100){
@@ -49,6 +59,30 @@ module assembled(){
     
     //y brackets - two adjust to tension the belt, two are fixed.
     
+}
+
+module roller_mount(wall=3){
+     difference(){
+        union(){
+            cylinder(r=roller_inside_rad+wall, h=wall+.1);
+            translate([0,0,wall]) cylinder(r1=roller_inside_rad+wall, r2=roller_inside_rad, h=wall+.1);
+            translate([0,0,wall*2]) cylinder(r1=roller_inside_rad, r2=roller_inside_rad-slop, h=wall+.1);
+            translate([0,0,wall*3]) cylinder(r1=roller_inside_rad-slop, r2=bearing_rad+wall*3, h=wall*2+.1);
+            translate([0,0,wall*5]) cylinder(r1=bearing_rad+wall*3, r2=bearing_rad+wall*2, h=bearing_inset-wall*4);
+            
+            translate([0,0,bearing_inset]) hull(){
+                cylinder(r=roller_inside_rad, h=wall, center=true);
+                cylinder(r=roller_inside_rad-slop*2, h=wall*2, center=true);
+            }
+        }
+        
+        //approach the bearing
+        translate([0,0,-.1]) cylinder(r1=bearing_rad+wall*2, r2=bearing_rad+wall, h=bearing_inset-bearing_thick+.2);
+        //mount the bearing
+        translate([0,0,-.1]) cylinder(r2=bearing_rad, r1=bearing_rad+slop/2, h=bearing_inset+.1);
+        //center through hole
+        translate([0,0,-.1]) cylinder(r=bearing_rad-wall, h=bearing_inset+.2+wall);  
+    }
 }
 
 module frame(){
