@@ -4,13 +4,13 @@ use <functions.scad>
 length = 500;
 
 bed_plate = in*20;
-roller_rad = in;
+roller_rad = 2.375/2*in;
 roller_rod_rad = 5;
 roller_drop = 1;
 roller_len = in*16;
-roller_offset = roller_rod_rad;
+roller_offset = roller_rod_rad+5;
 
-roller_inside_rad = 49/2-.2;
+roller_inside_rad = 2.075/2*in-.2;
 bearing_rad = 26/2+.125;
 bearing_thick = 8;
 bearing_inset = in*2;
@@ -22,7 +22,8 @@ bed_lift = in*1/16; //put a little insulation under the bed beams
 
 chamfer = 1.5;
 
-part = 4;
+part = 3;
+mirror = 0;
 
 if(part == 0){
     echo("Print 6 side brackets!");
@@ -41,12 +42,12 @@ if(part == 2){
 
 if(part == 3){
     echo("Print 2 sliding brackets");
-    roller_bracket(slide = 19);
+    mirror([mirror,0,0]) roller_bracket(slide = 19);
 }
 
 if(part == 4){
     echo("Print 2 fixed brackets");
-    roller_bracket(slide = 0);
+    mirror([mirror,0,0]) roller_bracket(slide = 0);
 }
 
 if(part == 7){
@@ -68,8 +69,10 @@ module assembled(){
     for(i=[0,1]) mirror([i,0,0]) translate([length/2+bracket_thick/2,z_rear_offset,beam]) rotate([0,90,0]) rotate([0,0,90]) z_bracket();
     
     //y brackets - two adjust to tension the belt, two are fixed.
-    for(i=[-1,1]) for(j=[0,1]) mirror([j,0,0])
-        translate([-length/2+beam+bracket_thick/2,i*(length/2),0]) rotate([0,-90,0]) mirror([0,0,1]) roller_bracket(slide = 10);
+    for(i=[-1]) for(j=[0,1]) mirror([j,0,0])
+        translate([-length/2+beam+bracket_thick/2,i*(length/2),0]) rotate([0,-90,0]) mirror([0,0,1]) roller_bracket(slide = 19);
+    for(i=[1]) for(j=[0,1]) mirror([j,0,0])
+        translate([-length/2+beam+bracket_thick/2,i*(length/2),0]) rotate([0,-90,0]) mirror([0,0,1]) mirror([0,1,0]) roller_bracket(slide = 0);
 }
 
 module frame(){
