@@ -10,7 +10,7 @@ roller_drop = 1;
 roller_len = in*16;
 roller_offset = 10;
 
-roller_inside_rad = 49/2-.2;
+roller_inside_rad = 49/2-.125;
 bearing_rad = 26/2+.125;
 bearing_thick = 8;
 bearing_inset = in*2;
@@ -22,7 +22,7 @@ bed_lift = in*1/16; //put a little insulation under the bed beams
 
 chamfer = 1.5;
 
-part = 7;
+part = 100;
 
 if(part == 0){
     echo("Print 6 side brackets!");
@@ -58,7 +58,7 @@ module assembled(){
     for(i=[0,1]) mirror([i,0,0]) translate([length/2+bracket_thick/2,z_rear_offset,beam]) rotate([0,90,0]) rotate([0,0,90]) z_bracket();
     
     //y brackets - two adjust to tension the belt, two are fixed.
-    
+    y_inside_bracket();
 }
 
 module roller_mount(wall=3){
@@ -66,13 +66,13 @@ module roller_mount(wall=3){
         union(){
             cylinder(r=roller_inside_rad+wall, h=wall+.1);
             translate([0,0,wall]) cylinder(r1=roller_inside_rad+wall, r2=roller_inside_rad, h=wall+.1);
-            translate([0,0,wall*2]) cylinder(r1=roller_inside_rad, r2=roller_inside_rad-slop, h=wall+.1);
-            translate([0,0,wall*3]) cylinder(r1=roller_inside_rad-slop, r2=bearing_rad+wall*3, h=wall*2+.1);
-            translate([0,0,wall*5]) cylinder(r1=bearing_rad+wall*3, r2=bearing_rad+wall*2, h=bearing_inset-wall*4);
+            translate([0,0,wall*2]) cylinder(r1=roller_inside_rad, r2=roller_inside_rad-slop, h=wall*2+.1);
+            translate([0,0,wall*4]) cylinder(r1=roller_inside_rad-slop, r2=bearing_rad+wall*3, h=wall*2+.1);
+            translate([0,0,wall*6]) cylinder(r1=bearing_rad+wall*3, r2=bearing_rad+wall*2, h=bearing_inset-wall*5);
             
-            translate([0,0,bearing_inset]) hull(){
-                cylinder(r=roller_inside_rad, h=wall, center=true);
-                cylinder(r=roller_inside_rad-slop*2, h=wall*2, center=true);
+            translate([0,0,bearing_inset-wall]) hull(){
+                cylinder(r=roller_inside_rad, h=wall*2, center=true);
+                cylinder(r=roller_inside_rad-wall/2, h=wall*4, center=true);
             }
         }
         
@@ -161,7 +161,7 @@ module side_bracket(feet = false, cut = false, thick=bracket_thick){
     difference(){
         union(){
             hull(){
-                for(i=[-10,10]) for(j=[-30,30+bed_lift]) translate([i,j,0]){
+                for(i=[-10,10]) for(j=[30+bed_lift]) translate([i,j,0]){
                     translate([0,0,-chamfer/2]) cylinder(r=10, h=thick-chamfer, center=true);
                     cylinder(r=10-chamfer, h=thick, center=true);
                 }
@@ -174,13 +174,18 @@ module side_bracket(feet = false, cut = false, thick=bracket_thick){
                 }
             }
             
+            for(i=[-10,10]) for(j=[-30]) translate([i,j,0]){
+                translate([0,0,-chamfer/2]) cylinder(r=10, h=thick-chamfer, center=true);
+                cylinder(r=10-chamfer, h=thick, center=true);
+            }
+            
             //stiffening ridge
             if(cut == false) hull(){
                 for(i=[-10,10]) for(j=[-30,30+bed_lift]) translate([i,j,0]){
                     translate([0,0,-thick/2]) cylinder(r=chamfer, h=.1);
                 }
                 translate([0,40+bed_lift-chamfer,0]){
-                    translate([0,0,-thick/2]) cylinder(r=chamfer, h=.1);
+                    translate([0,0,-thick/2]) cylinder(r=chamfer, h=thick/2);
                 }
                 if(feet == true){
                     translate([0,-60+chamfer,0]){
@@ -188,19 +193,27 @@ module side_bracket(feet = false, cut = false, thick=bracket_thick){
                     }
                 }
                 
-                for(j=[-50,30+bed_lift]) translate([0,j,0]){
-                    translate([0,0,-thick/2]) cylinder(r=chamfer, h=thick*2);
+                for(j=[-30,30+bed_lift]) translate([0,j,0]){
+                    translate([0,0,-thick/2]) cylinder(r=chamfer, h=thick*1.5);
+                }
+                for(i=[-thick,thick]) translate([i,0,0]){
+                    translate([0,0,-thick/2]) cylinder(r=chamfer, h=thick*1.5);
                 }
             }
         }
 
-        for(i=[-10,10]) for(j=[-30,-10,10,30+bed_lift]) translate([i,j,0]){
+        for(i=[-10,10]) for(j=[-30,30+bed_lift]) translate([i,j,0]){
+            cylinder(r=m5_rad, h=thick*2, center=true);
+            cylinder(r=m5_cap_rad, h=thick*2);
+        }
+        
+        for(i=[0]) for(j=[-10,10]) translate([i,j,0]){
             cylinder(r=m5_rad, h=thick*2, center=true);
             cylinder(r=m5_cap_rad, h=thick*2);
         }
         
         if(feet == true){
-            translate([0,-50,0]) cylinder(r=5, h=thick*5, center=true);
+            translate([0,-50,0]) cylinder(r=6, h=thick*5, center=true);
         }
     }
 }
