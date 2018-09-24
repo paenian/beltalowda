@@ -11,7 +11,7 @@ roller_drop = 1;
 roller_len = in*16;
 roller_offset = roller_rod_rad+5;
 
-roller_inside_rad = 2.075/2*in-.2;
+roller_inside_rad = 2.075/2*in-.05;
 bearing_rad = 26/2+.125;
 bearing_thick = 8;
 bearing_inset = in*2;
@@ -33,7 +33,7 @@ bed_lift = in*1/16; //put a little insulation under the bed beams
 
 chamfer = 1.5;
 
-part = 8;
+part = 3;
 mirror = 0;
 
 if(part == 0){
@@ -181,26 +181,26 @@ module roller_mount(wall=3){
     }
 }
 
-module roller_bracket(slide = 0, thick=bracket_thick){
+module roller_bracket(slide = 0, thick=bracket_thick, beam_inset = .333){
     fillet = beam/4;
     difference(){
         union(){
             //back plate - side extrusions & rod hole/slot
             hull(){
                 for(i=[-beam/2,beam/2]) for(j=[beam*.5,beam*2.5]) translate([i,j,0]){
-                    cylinder(r=beam/2, h=thick-chamfer*2, center=true);
+                    cylinder(r=beam/2-beam_inset, h=thick-chamfer*2, center=true);
                     cylinder(r=beam/2-chamfer, h=thick, center=true);
                 }
                 
                 //rod slot
                 for(j=[-roller_offset, -roller_offset-slide]) translate([beam/2,j,0]){
-                    cylinder(r=beam/2, h=thick-chamfer*2, center=true);
+                    cylinder(r=beam/2-beam_inset, h=thick-chamfer*2, center=true);
                     cylinder(r=beam/2-chamfer, h=thick, center=true);
                 }
             }
             
             //top and bottom beam mounts
-            for(i=[0,1]) mirror([i,0,0]) translate([beam-thick/2,0,beam/2-thick/2]) hull() for(j=[beam*1.5,beam*2.5]) translate([0,j,0]) rotate([0,90,0]) {
+            #for(i=[0,1]) mirror([i,0,0]) translate([beam-thick/2-beam_inset,0,beam/2-thick/2]) hull() for(j=[beam*1.5,beam*2.5]) translate([0,j,0]) rotate([0,90,0]) {
                 cylinder(r=beam/2, h=thick-chamfer*2, center=true);
                 cylinder(r=beam/2-chamfer, h=thick, center=true);
             }
