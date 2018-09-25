@@ -5,6 +5,12 @@ slot_d = 6;
 slot_inner_w = 14;
 slot_inner_h = 4;
 
+module beam_2060(height=20, v=false, slop=0){
+    translate([-beam,0,0]) beam(height=height, v=v, slop=slop);
+    beam(height=height, v=v, slop=slop);
+    translate([beam,0,0]) beam(height=height, v=v, slop=slop);
+}
+
 module beam_2040(height=20, v=false, slop=0){
     translate([-beam/2,0,0]) beam(height=height, v=v, slop=slop);
     translate([beam/2,0,0]) beam(height=height, v=v, slop=slop);
