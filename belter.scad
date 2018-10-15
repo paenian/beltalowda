@@ -29,7 +29,7 @@ echo(big_teeth/small_teeth);
 bracket_thick = 6;
 
 z_rear_offset = 100;
-bed_lift = in*1/16; //put a little insulation under the bed beams
+bed_lift = 0; //in*1/16; //put a little insulation under the bed beams
 
 chamfer = 1.5;
 
