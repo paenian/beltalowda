@@ -8,7 +8,7 @@ bed_plate = in*20;
 roller_rad = 2.375/2*in;
 roller_rod_rad = 5;
 roller_drop = 1;
-roller_len = in*16;
+roller_len = in*14;
 roller_offset = roller_rod_rad+5;
 
 roller_inside_rad = 2.075/2*in-.05;
