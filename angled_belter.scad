@@ -10,13 +10,15 @@ roller_rod_rad = 5;
 roller_drop = 1;
 roller_len = in*14;
 roller_offset_front = roller_rad+10;
-roller_span = 350;
+roller_span = 340;
 roller_offset_rear = length - roller_span - roller_offset_front;
 
 roller_inside_rad = 2.075/2*in-.05;
 bearing_rad = 26/2+.125;
+bearing_rad = 32/2+.125;    //switch everything to 12mm rods?  Or keep the rollers on 10mm?
 bearing_thick = 8;
-bearing_inset = in*2;
+bearing_thick = 10;
+bearing_inset = in;
 
 //belt drive variables
 small_teeth = 13;
@@ -25,6 +27,11 @@ big_teeth = 41;
 gear_thick = 13;
 distance_between_axles = 37;
 circular_pitch = 360*distance_between_axles/(small_teeth+big_teeth);
+
+//x axis
+x_rod_rad = 6;
+x_rod_sep = motor_w+x_rod_rad*3;
+x_rod_flange = 32;
 
 echo(big_teeth/small_teeth);
 
@@ -118,23 +125,92 @@ module frame(){
     %translate([0,0,beam*1.5+bed_lift]) cube([400,400,in/8], center=true);
 }
 
-module spacer_bits(){
-    
+module rod_clamp(rad = 5, wall = 5, solid = 1, h=bracket_thick, angle = 15){
+    if(solid == 1){
+        cylinder(r=rad+wall*3, h=h, center=true);
+        translate([-rad/2-wall/2,0,0]) cube([rad+wall*2,wall*2,h], center=true);
+    }else{
+        cylinder(r=rad, h=h*2, center=true);
+        //open up around the hole top
+        intersection(){
+            difference(){
+                cylinder(r=rad+wall+.1, h=h*2, center=true);
+                cylinder(r=rad+wall-1, h=h*3, center=true);
+                translate([-rad/2-wall/2,0,0]) cube([rad+wall*2,wall*2,h], center=true);
+            }
+            //leave the bottom for attachment
+            for(i=[0:1]) mirror([0,i,0]) rotate([0,0,90-angle]) translate([0,0,-25]) cube([50,50,50]);
+        }
+        
+        //center gap
+        translate([-rad/2-wall/2,0,0]) cube([rad+wall*2+.1,wall/2,h+.1], center=true);
+        
+        //zip tie clamp
+        for(i=[0:1]) mirror([0,i,0]) translate([-rad-wall+1.5,6,0]) {
+            cube([4,2,h*3], center=true);
+            translate([-1.25,1,0]) cube([6.25,1,h*3], center=true);
+        }
+        
+        translate([-rad-wall*1.5,0,0]) cube([1,wall*2+4,h*2], center=true);
+    }
 }
 
 module spacer_plate(){
     length = 150;
     width = beam*2;
+    
+    x_offset = -length/2+x_rod_sep/2+x_rod_flange/2+1;
+   
+    z_motor_offset = sqrt(pow(distance_between_axles,2) - pow(motor_w/2-x_rod_rad,2));
+    
+    
     translate([0,-250+length/2,0]) difference(){
         union(){
-            #cube([width,length,bracket_thick], center=true);
+            hull(){
+                //roller meat
+                translate([-roller_rod_rad,-length/2+roller_offset_rear,0]) rod_clamp(r=roller_rod_rad+slop, solid=1);
+            
+                //x axis meat
+                translate([0,x_offset,0]) {
+                
+                    translate([-x_rod_rad,0,0]) for(i=[0:1]) mirror([0,i,0]) translate([0,x_rod_sep/2,0])
+                        rod_clamp(r=x_rod_rad+slop, solid=1, wall=4);
+                }
+                
+                //screw bosses to mount the thing
+                translate([beam*1.25,x_offset-x_rod_sep/2,0])
+                    rod_clamp(r=x_rod_rad+slop, solid=1, wall=4);
+                translate([beam*1.25,-length/2+roller_offset_rear+motor_w,0])
+                    rod_clamp(r=x_rod_rad+slop, solid=1, wall=4);
+                translate([-x_rod_rad,-length/2+roller_offset_rear+motor_w,0])
+                    rod_clamp(r=x_rod_rad+slop, solid=1, wall=4);
+            }
+            
+            //x axis drive motor
+            translate([-motor_w/2,x_offset,0]) motor_body(extra = 4, thick=bracket_thick);
+            
+            //z axis drive motor
+            translate([-motor_w/2,-length/2+roller_offset_rear+z_motor_offset,0]) motor_body(extra = 4, thick=bracket_thick);
         }
         
         //roller mount
-        #translate([0,-length/2+roller_offset_rear,roller_rod_rad]) cylinder(r=roller_rod_rad+slop, h=bracket_thick*2, center=true);
+        translate([-roller_rod_rad,-length/2+roller_offset_rear,0]) rod_clamp(r=roller_rod_rad+laser_slop, solid=0);
         
-        //x axis motor
+        //x axis
+        translate([0,x_offset,0]) {
+            translate([-motor_w/2,0,0]) motor_holes();
+            translate([-x_rod_rad,0,0]) for(i=[0:1]) mirror([0,i,0]) translate([0,x_rod_sep/2,0])
+                    rod_clamp(r=x_rod_rad+slop, solid=0);
+        }
         
+        //z axis drive motor
+            translate([-motor_w/2,-length/2+roller_offset_rear+z_motor_offset,0]) motor_holes();
+        
+        //screwholes all over
+        for(i=[x_offset-x_rod_sep/2,0,-length/2+roller_offset_rear+motor_w]) for(j=[beam*.5,beam*1.5]) translate([j,i,0]){
+            cylinder(r=m5_rad, h=bracket_thick*2, center=true);
+            //cylinder(r=m5_cap_rad, h=bracket_thickthick*2);
+        }
     }
 }
 

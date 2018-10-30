@@ -95,6 +95,14 @@ module motor_holes(screw_rad = m3_rad+slop/2, screw_w = motor_screw_sep, slot=2,
     }
 }
 
+module motor_body(extra = .1, thick=wall){
+    intersection(){
+        hull() for(i=[0:1]) for(j=[0:1]) mirror([i,0,0]) mirror([0,j,0]) translate([motor_w/2, motor_w/2, 0]) 
+            cylinder(r=extra, h=thick, center=true);
+        cylinder(r=motor_r+extra, h=thick, center=true);
+    }
+}
+
 module screw_hole_m3(cap=false, onion=0, height=wall){
     screw_hole(cap=cap, onion=onion, cap_height=m3_cap_height, rad=m3_rad, cap_rad=m3_cap_rad, height=height);
 }
