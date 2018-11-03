@@ -3,6 +3,7 @@ use <functions.scad>
 use <herringbone_gears.scad>
 
 length = 500;
+angle = 35;
 
 bed_plate = in*20;
 roller_rad = 2.375/2*in;
@@ -32,6 +33,7 @@ circular_pitch = 360*distance_between_axles/(small_teeth+big_teeth);
 x_rod_rad = 6;
 x_rod_sep = motor_w+x_rod_rad*3;
 x_rod_flange = 32;
+x_bearing_rad = 11;
 
 echo(big_teeth/small_teeth);
 
@@ -101,6 +103,10 @@ module assembled(){
     for(i=[0,1]) mirror([i,0,0]) translate([-length/2+beam+bracket_thick/2,0,beam*1.5]) rotate([0,90,0]) {
         spacer_plate();
     } 
+    
+    translate([0,0,beam*1.5]) rotate([0,90,0]) {
+        y_plate();
+    } 
 }
 
 module frame(){
@@ -152,6 +158,25 @@ module rod_clamp(rad = 5, wall = 5, solid = 1, h=bracket_thick, angle = 15){
         }
         
         translate([-rad-wall*1.5,0,0]) cube([1,wall*2+4,h*2], center=true);
+    }
+}
+
+module y_plate(){
+    motor_offset = -motor_w/2-x_bearing_rad-wall;
+    translate([0,-250+50,0]) difference(){
+        union(){
+            hull(){
+                for(i=[0,1]) mirror([0,i,0]) translate([0,x_rod_sep/2,0])
+                    cylinder(r=x_bearing_rad+wall, h=bracket_thick, center=true);
+                
+                translate([motor_offset,0,0]) rotate([0,0,angle]) motor_body(extra = 4, thick=bracket_thick);
+                
+            }
+        }
+        for(i=[0,1]) mirror([0,i,0]) translate([0,x_rod_sep/2,0])
+                cylinder(r=x_bearing_rad, h=bracket_thick+1, center=true);
+        
+        translate([motor_offset,0,0]) rotate([0,0,angle]) motor_holes();
     }
 }
 
