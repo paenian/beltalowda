@@ -34,6 +34,8 @@ x_rod_rad = 6;
 x_rod_sep = motor_w+x_rod_rad*4;
 x_bearing_flange = 32;
 x_bearing_rad = 11;
+x_nut_rad = 10.3/2;
+x_nut_screw_rad = 16/2;
 
 linear_rail_width = 15;
 
@@ -54,7 +56,7 @@ bed_lift = roller_rod_rad+roller_rad; //in*1/16; //put a little insulation under
 
 chamfer = 1.5;
 
-part = 100;
+part = 99;
 mirror = 0;
 
 if(part == 0){
@@ -95,6 +97,13 @@ if(part == 8){
 if(part == 88){
     echo("Print 1 roller drive mounts!");
     mirror([0,0,1]) motor_drive_gear();
+}
+
+if(part == 9){
+    projection() spacer_plate();
+}
+if(part == 99){
+    projection() y_plate();
 }
 
 if(part == 100){
@@ -172,7 +181,7 @@ module rod_clamp(rad = 5, wall = 5, solid = 1, h=bracket_thick, angle = 15){
 }
 
 module y_plate(){
-    motor_offset = -motor_w/2-x_bearing_rad-wall;
+    motor_offset = -motor_w/2-x_bearing_rad-wall-17;
     translate([0,x_offset,0]) difference(){
         union(){
             hull(){
@@ -181,6 +190,7 @@ module y_plate(){
                     for(j=[45:90:359]) rotate([0,0,j]) translate([0,x_bearing_flange/2,0]) cylinder(r=m3_rad+wall/2, h=bracket_thick, center=true);
                 
                 translate([motor_offset,x_rod_sep/2,0]) rotate([0,0,angle]) motor_body(extra = 4, thick=bracket_thick);
+                translate([motor_offset,x_rod_sep/2,0]) rotate([0,0,angle]) translate([-motor_w,0,0]) motor_body(extra = 4, thick=bracket_thick);
                 
             }
             
@@ -191,14 +201,25 @@ module y_plate(){
             }
         }
         
+        //x drive screw
+        translate([-motor_w/2,x_rod_sep/2,0]){
+            cylinder(r = x_nut_rad, h=bracket_thick+1, center=true);
+                for(j=[45:90:359]) rotate([0,0,j]) translate([0,x_nut_screw_rad,0]) cylinder(r=m3_rad, h=bracket_thick+1, center=true);
+        }
         
+        
+        //x bearing flanges
         for(i=[0,1]) translate([-x_rod_rad,x_rod_sep*i,0]) {
                 cylinder(r=x_bearing_rad, h=bracket_thick+1, center=true);
             
             for(j=[45:90:359]) rotate([0,0,j]) translate([0,x_bearing_flange/2,0]) cylinder(r=m3_rad, h=bracket_thick+1, center=true);
         }
         
+        //y motor
         translate([motor_offset,x_rod_sep/2,0]) rotate([0,0,angle]) motor_holes();
+        
+        //extruder motor
+        translate([motor_offset,x_rod_sep/2,0]) rotate([0,0,angle]) translate([-motor_w,0,0]) motor_holes();
         
         //beam mounting holes
         translate([motor_offset,x_rod_sep/2,0]) rotate([0,0,angle]){
