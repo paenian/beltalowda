@@ -45,7 +45,7 @@ linear_rail_width = 15;
 x_rear_rad = x_bearing_flange/2+wall+1;
 x_offset = -length/2+x_rear_rad;
 
-roller_offset_rear = x_offset+x_rod_sep+x_bearing_flange/2+roller_rad+wall*1.5;
+roller_offset_rear = x_offset+x_rod_sep+x_bearing_flange/2+roller_rad+wall;
 
 echo(big_teeth/small_teeth);
 
@@ -56,17 +56,17 @@ bed_lift = roller_rod_rad+roller_rad; //in*1/16; //put a little insulation under
 
 chamfer = 1.5;
 
-part = 99;
+part = 100;
 mirror = 0;
 
 if(part == 0){
     echo("Print 6 side brackets!");
-    side_bracket(feet=true);
+    mirror([mirror,0,0]) side_bracket(feet=true, corner=true);
 }
 
 if(part == 1){
-    echo("Cut 6 side brackets!");
-    projection(cut = false) side_bracket(feet=true, cut=true);
+    echo("Print 6 side brackets!");
+    side_bracket(feet=true, corner=true);
 }
 
 if(part == 2){
@@ -113,11 +113,12 @@ module assembled(){
     frame();
     
     //side brackets
-    for(i=[0]) for(j=[0,1]) mirror([j,0,0])
+    *for(i=[0]) for(j=[0,1]) mirror([j,0,0])
         translate([-length/2-bracket_thick/2,i*(length/2-beam*3),0]) rotate([0,-90,0]) rotate([0,0,-90]) side_bracket(feet=true);
     
-    for(i=[-1,1]) for(j=[0,1]) mirror([j,0,0])
-        translate([-length/2-bracket_thick/2,i*length/2,0]) rotate([0,-90,0]) rotate([0,0,-90]) side_bracket(feet=true, corner=true);
+    //corner brackets
+    for(i=[0,1]) for(j=[0,1]) mirror([j,0,0]) mirror([0,i,0])
+        translate([-length/2-bracket_thick/2,length/2,beam]) mirror([i,0,0]) rotate([0,-90,0]) rotate([0,0,-90])  side_bracket(feet=true, corner=true);
     
     for(i=[0,1]) mirror([i,0,0]) translate([-length/2+beam+bracket_thick/2,0,beam*1.5]) rotate([0,90,0]) {
         spacer_plate();
@@ -239,7 +240,8 @@ module y_plate(){
 module spacer_plate(){
     width = beam*2;
    
-    z_motor_offset = sqrt(pow(distance_between_axles,2) - pow(motor_w/2-x_rod_rad,2));
+    z_motor_lift = x_rod_rad*2.5;
+    z_motor_offset = sqrt(pow(distance_between_axles,2) - pow(motor_w/2-roller_rod_rad+z_motor_lift,2));
     
     
     difference(){
@@ -269,7 +271,7 @@ module spacer_plate(){
                 translate([-motor_w/2,x_rod_sep/2,0]) motor_body(extra = 4, thick=bracket_thick);
             
             //z axis drive motor
-            translate([-motor_w/2,roller_offset_rear+z_motor_offset,0]) motor_body(extra = 4, thick=bracket_thick);
+            translate([-motor_w/2-z_motor_lift,roller_offset_rear-z_motor_offset,0]) motor_body(extra = 4, thick=bracket_thick);
         }
         
         //roller mount
@@ -283,7 +285,7 @@ module spacer_plate(){
         }
         
         //z axis drive motor
-            translate([-motor_w/2,roller_offset_rear+z_motor_offset,0]) motor_holes();
+        translate([-motor_w/2-z_motor_lift,roller_offset_rear-z_motor_offset,0]) motor_holes();
         
         //screwholes all over
         for(i=[x_offset-x_rod_sep/2,0,-length/2+roller_offset_rear+motor_w]) for(j=[beam*.5,beam*1.5]) translate([j,i,0]){
@@ -369,7 +371,11 @@ module side_bracket(feet = false, cut = false, thick=bracket_thick, corner=false
                 }
             
                 if(corner == true){
-                    for(i=[-beam/2, beam/2]) for(j=[-beam,beam]) translate([i,j,0]){
+                    for(i=[beam/2]) for(j=[-beam,0]) translate([i,j,0]){
+                        cylinder(r=beam/2, h=thick-chamfer, center=true);
+                        cylinder(r=beam/2-chamfer, h=thick, center=true);
+                    }
+                    for(i=[-beam/2, beam/2]) for(j=[-beam]) translate([i,j,0]){
                         cylinder(r=beam/2, h=thick-chamfer, center=true);
                         cylinder(r=beam/2-chamfer, h=thick, center=true);
                     }
