@@ -37,7 +37,7 @@ x_bearing_rad = 11;
 x_nut_rad = 10.3/2;
 x_nut_screw_rad = 16/2;
 
-linear_rail_width = 15;
+linear_rail_width = 12;
 
 
 //positioning offsets
@@ -56,54 +56,73 @@ bed_lift = roller_rod_rad+roller_rad; //in*1/16; //put a little insulation under
 
 chamfer = 1.5;
 
-part = 100;
+part = 7;
 mirror = 0;
 
-if(part == 0){
-    echo("Print 6 side brackets!");
-    mirror([mirror,0,0]) side_bracket(feet=true, corner=true);
+if(part == 1){
+    echo("Print 2 sets of corner brackets");
+    translate([beam+.5,0,0]) mirror([1,0,0]) side_bracket(feet=false, corner=true);
+    translate([-beam-.5,0,0]) side_bracket(feet=false, corner=true);
 }
 
-if(part == 1){
-    echo("Print 6 side brackets!");
-    side_bracket(feet=true, corner=true);
+if(part == 1.5){
+    echo("Cut 2 sets of corner brackets");
+    projection(){
+        translate([beam+.5,0,0]) mirror([1,0,0]) side_bracket(feet=false, corner=true);
+        translate([-beam-.5,0,0]) side_bracket(feet=false, corner=true);
+    }
 }
 
 if(part == 2){
-    echo("Print 2 Z brackets!");
-    z_bracket();
+    echo("print both spacer plates");
+    translate([-beam*2.4,0,0]) spacer_plate();
+    mirror([1,0,0]) translate([-beam*2.4,0,0])  spacer_plate();
+}
+
+if(part == 2.5){
+    echo("Lasercut both spacer plates");
+    projection() {
+        translate([-beam*2.355,0,0]) spacer_plate();
+        mirror([1,0,0]) translate([-beam*2.355,0,0])  spacer_plate();
+    }
 }
 
 if(part == 3){
-    echo("Print 2 sliding brackets");
-    mirror([mirror,0,0]) roller_bracket(slide = 19);
+    y_plate();
+}
+
+if(part == 3.5){
+    projection() y_plate();
 }
 
 if(part == 4){
-    echo("Print 2 fixed brackets");
-    mirror([mirror,0,0]) roller_bracket(slide = 0);
-}
-
-if(part == 7){
     echo("Print 3 roller mounts!");
     mirror([0,0,1]) roller_mount();
 }
 
-if(part == 8){
+if(part == 5){
     echo("Print 1 roller drive mounts!");
     mirror([0,0,1]) roller_drive_mount();
 }
 
-if(part == 88){
-    echo("Print 1 roller drive mounts!");
+if(part == 6){
+    echo("Print 1 roller drive gear!");
     mirror([0,0,1]) motor_drive_gear();
 }
 
-if(part == 9){
-    projection() spacer_plate();
+if(part == 7){
+    echo("Print one y gantry");
+    y_gantry();
 }
-if(part == 99){
-    projection() y_plate();
+
+if(part == 8){
+    echo("Print one extruder");
+    extruder();
+}
+
+if(part == 9){
+    echo("Print 6 or 8 feet");
+    rubber_foot();
 }
 
 if(part == 100){
@@ -149,6 +168,29 @@ module frame(){
     //bed
     %translate([0,0,beam*1.5+bed_lift]) cube([bed_plate,bed_plate,in/16], center=true);
     %translate([0,0,beam*1.5+bed_lift]) cube([400,400,in/8], center=true);
+}
+
+module y_gantry(){
+    //holes are m3, ~5mm deep.
+    hole_sep_x = 20;
+    hole_sep_y = 20;
+    
+    pulley_rad = 6;
+    
+    difference(){
+        union(){
+            //belt mount
+            
+            //hotend clamp mount
+            
+        }
+        
+        //belt grip
+        
+        //belt passthrough
+        
+        //hotend holes
+    }
 }
 
 module rod_clamp(rad = 5, wall = 5, solid = 1, h=bracket_thick, angle = 15){
@@ -257,7 +299,7 @@ module spacer_plate(){
                 }
                 
                 //screw bosses to mount the thing
-                for(i=[0,8]) translate([beam*1.25,x_offset+beam*i,0])
+                for(i=[0,6]) translate([beam*1.25,x_offset+beam*i,0])
                     cylinder(r=x_rear_rad,h=bracket_thick, center=true);
                 
                 *translate([beam*1.25,2+roller_offset_rear+motor_w,0])
@@ -288,9 +330,13 @@ module spacer_plate(){
         translate([-motor_w/2-z_motor_lift,roller_offset_rear-z_motor_offset,0]) motor_holes();
         
         //screwholes all over
-        for(i=[x_offset-x_rod_sep/2,0,-length/2+roller_offset_rear+motor_w]) for(j=[beam*.5,beam*1.5]) translate([j,i,0]){
-            cylinder(r=m5_rad, h=bracket_thick*2, center=true);
-            //cylinder(r=m5_cap_rad, h=bracket_thickthick*2);
+        for(i=[0,3,6]) translate([beam*1.5,x_offset+beam*i,0]){
+            cylinder(r=m5_rad,h=bracket_thick*3, center=true);
+            cylinder(r=m5_cap_rad, h=bracket_thick*2);
+        }
+        for(i=[1.5,4.5]) translate([beam*.5,x_offset+beam*i,0]){
+            cylinder(r=m5_rad,h=bracket_thick*3, center=true);
+            cylinder(r=m5_cap_rad, h=bracket_thick*2);
         }
     }
 }
@@ -307,7 +353,7 @@ module roller_drive_mount(wall = 3){
     
     gear_chamfer_radius = (outer_radius - radius) / tan(45);
     
-    lift = gear_thick+10;
+    lift = gear_thick+5;
     
     difference(){
         union(){
