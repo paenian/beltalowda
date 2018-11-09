@@ -56,7 +56,7 @@ bed_lift = roller_rod_rad+roller_rad; //in*1/16; //put a little insulation under
 
 chamfer = 1.5;
 
-part = 7;
+part = 3.5;
 mirror = 0;
 
 if(part == 1){
@@ -92,7 +92,10 @@ if(part == 3){
 }
 
 if(part == 3.5){
-    projection() y_plate();
+    projection() {
+        translate([-beam*.5,0,0]) y_plate();
+        mirror([1,0,0]) translate([-beam*.5,0,0]) y_plate();
+    }
 }
 
 if(part == 4){
