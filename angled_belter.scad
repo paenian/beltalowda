@@ -170,26 +170,169 @@ module frame(){
     %translate([0,0,beam*1.5+bed_lift]) cube([400,400,in/8], center=true);
 }
 
+screw_mount_rad = 5;
+screw_mount_screw_sep = 23;
 module y_gantry(){
     //holes are m3, ~5mm deep.
     hole_sep_x = 20;
     hole_sep_y = 20;
-    
+    hole_rad = m3_rad;
+    hole_cap_rad = m3_cap_rad;
+    hotend_extend = 17;
     pulley_rad = 6;
     
     difference(){
         union(){
+            //body
+            hull() for(i=[0,1]) for(j=[0,1]) mirror([i,0,0]) mirror([0,j,0]) translate([hole_sep_x, hole_sep_y, 0]){
+               cylinder(r=hole_rad+wall,h=bracket_thick/2, center=true);
+                cylinder(r=hole_rad+wall/2,h=bracket_thick, center=true);
+            }
             //belt mount
             
             //hotend clamp mount
-            
+            translate([0,0,hotend_extend]) rotate([-90,0,0]) groovemount_screw(height = hotend_extend);
         }
         
+        //gantry attach holes
+        for(i=[0,1]) for(j=[0,1]) mirror([i,0,0]) mirror([0,j,0]) translate([hole_sep_x, hole_sep_y, 0]){
+            cylinder(r=hole_cap_rad,h=bracket_thick);
+            cylinder(r=hole_rad,h=bracket_thick+1, center=true);
+        }
         //belt grip
         
         //belt passthrough
+        %for(i=[0,1]) mirror([0,i,0]) translate([0,pulley_rad+1,0]) cube([100,2,7],center=true);
+        
+        //hotend clamp holes
+        //hotend clamp mount
+            translate([0,0,hotend_extend]) rotate([-90,0,0]) groovemount_screw(height = hotend_extend, solid=0);
+    }
+}
+
+module groovemount_screw(solid=1,e3d=1, height = 19){
+    dia = 16;
+    rad = dia/2+slop;
+    mink = 1;
+    inset = 3;
+    groove = 9+2;
+    thick = 5;
+    length = 10;
+    
+    bowden_tube_rad = 2.5;
+    
+    base_rad=screw_mount_rad+3;
+    
+    screw_inset = 4.2;
+    screw_offset = rad+1;
+    screw_height = rad+m3_nut_height+wall;
+
+    filament_height = 14;
+
+    if(solid){
+        //body
+            //screwmount mount
+            translate([0,0,-inset+4.25+6/2-slop]) hull(){
+                for(i=[0,1]) mirror([i,0,0]) translate([screw_mount_screw_sep/2,7,0]) rotate([90,0,0]){
+                    cylinder(r=screw_mount_rad, h=height, center=true);
+                    translate([0,base_rad-screw_mount_rad,-height/2]) cylinder(r=base_rad, h=1, center=true);
+                }
+            }
+    }else{
+        
+        //screwmount
+        translate([0,0,-inset+4.25+6/2-slop]){
+            for(i=[0,1]) mirror([i,0,0]) translate([screw_mount_screw_sep/2,7,0]) rotate([90,0,0]) {
+                translate([0,0,-wall+m3_nut_height/2+.5+.3]) rotate([0,0,180]) cap_cylinder(r=m3_rad, h=25);
+                translate([0,0,-28+-wall+m3_nut_height/2+.5+.3]) rotate([0,0,180]) cap_cylinder(r=m3_rad, h=25);
+                
+                //nuts
+                translate([0,0,-wall]) rotate([0,0,45]) cylinder(r2=m3_sq_nut_rad, r1=m3_sq_nut_rad+1, h=m3_nut_height+1, center=true, $fn=4);
+                hull(){
+                    translate([0,m3_sq_nut_rad/2,-wall]) rotate([0,0,45]) cylinder(r2=m3_sq_nut_rad, r1=m3_sq_nut_rad+1, h=m3_nut_height+1, center=true, $fn=4);
+                    translate([0,m3_sq_nut_rad*2,-wall]) rotate([0,0,45]) cylinder(r2=m3_sq_nut_rad+.5, r1=m3_sq_nut_rad+1.5, h=m3_nut_height+1, center=true, $fn=4);
+                }
+                
+                %translate([0,0,+2]) cylinder(r=m3_rad, h=25.4*3/4);
+            }
+        }
         
         //hotend holes
+       render(){
+           //PTFE tube hole
+           translate([0,0,-inset-wall*2]) {
+               cap_cylinder(r=bowden_tube_rad, h=wall*3);
+               translate([0,-3+.75,wall*1.5])
+               hull(){
+                cube([1,wall*2,wall*3], center=true);
+                translate([0,-bowden_tube_rad,0]) cube([bowden_tube_rad*2,wall*2,wall*3], center=true);
+               }
+           }
+           //top part
+           translate([0,0,-inset-2]) hull(){
+               cap_cylinder(r=4+slop, h=wall);
+               translate([0,-3,0]) cap_cylinder(r=4+slop, h=wall);
+           }
+           
+           //the groove
+           translate([0,0,-inset]) hull(){
+               cap_cylinder(r=12/2+slop*3, h=13, $fn=90);
+               translate([0,-3,0]) cap_cylinder(r=12/2+slop*3, h=13, $fn=90);
+           }
+           
+           translate([0,0,-inset]) difference(){
+               cap_cylinder(r=rad, h=4+groove+.2+10, $fn=90);
+               translate([0,0,4.25]) cylinder(r=rad+1, h=6-slop*3);
+           }
+       }
+        
+        //backstop
+        translate([0,0,-inset]) cylinder(r=rad+slop*2, h=slop*2);
+        
+        //clamp cutout
+        translate([0,-rad-1.5,-inset+20]) cube([rad*2+wall*3+20,rad*2,100], center=true);
+    }
+}
+
+module groovemount_screw_clamp(){
+    groove_lift = 1;
+    wall = 3;
+    dia = 16;
+    rad = dia/2+slop;
+    mink = 1;
+    inset = 3;
+    groove = 9+2;
+    thick = rad-1;
+    length = 10;
+    
+    difference(){
+        hull(){
+            //screwhole mounts
+            for(i=[0,1]) mirror([i,0,0]) translate([screw_mount_screw_sep/2,7,0]) cylinder(r=screw_mount_rad, h=thick);
+        }
+        
+        //screwholes
+        for(i=[0,1]) mirror([i,0,0]) translate([screw_mount_screw_sep/2,7,-1]) cylinder(r=m3_rad+slop, h=wall*4);
+        
+       //hotend inset
+       render() translate([0,3,rad+groove_lift]) rotate([-90,0,0]) {           
+           //top part
+           translate([0,0,-inset-2]) hull(){
+               cap_cylinder(r=4+slop, h=wall);
+               translate([0,-3,0]) cap_cylinder(r=4+slop, h=wall);
+           }
+           
+           //the groove
+           translate([0,0,-inset]) hull(){
+               cap_cylinder(r=12/2+slop*3, h=13, $fn=90);
+               translate([0,-3,0]) cap_cylinder(r=12/2+slop*3, h=13, $fn=90);
+           }
+           
+           translate([0,0,-inset]) difference(){
+               cap_cylinder(r=rad, h=4+groove+.2, $fn=90);
+               translate([0,0,4.25]) cylinder(r=rad+1, h=6-slop*3);
+           }
+       }
     }
 }
 
