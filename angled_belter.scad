@@ -56,7 +56,7 @@ bed_lift = roller_rod_rad+roller_rad; //in*1/16; //put a little insulation under
 
 chamfer = 1.5;
 
-part = 7;
+part = 100;
 mirror = 0;
 
 if(part == 1){
@@ -144,7 +144,8 @@ module assembled(){
     } 
     
     translate([0,0,beam*1.5]) rotate([0,90,0]) {
-        y_plate();
+        y_plate(front = false);
+        translate([0,0,bracket_thick]) y_plate(front = true);
     } 
 }
 
@@ -165,48 +166,67 @@ module frame(){
         cylinder(r=roller_rod_rad, h=length, center=true);
     }
     
-    //bed
-    %translate([0,0,beam*1.5+bed_lift]) cube([bed_plate,bed_plate,in/16], center=true);
-    %translate([0,0,beam*1.5+bed_lift]) cube([400,400,in/8], center=true);
+    //bed beams
+    for(j=[1]) for(i=[0:2]) translate([-length/2,roller_offset_rear+roller_rad+beam+i*beam*2,beam*2*j]) rotate([90,0,0]) rotate([0,90,0]) beam_2040(height = length, v=false);
 }
 
 screw_mount_rad = 5;
-screw_mount_screw_sep = 23;
+screw_mount_screw_sep = 20;
 module y_gantry(){
     //holes are m3, ~5mm deep.
     hole_sep_x = 20;
     hole_sep_y = 20;
     hole_rad = m3_rad;
     hole_cap_rad = m3_cap_rad;
-    hotend_extend = 17;
+    hotend_extend = 20;
+    hotend_y_offset = -5;
     pulley_rad = 6;
     
     difference(){
         union(){
             //body
-            hull() for(i=[0,1]) for(j=[0,1]) mirror([i,0,0]) mirror([0,j,0]) translate([hole_sep_x, hole_sep_y, 0]){
+            hull() for(i=[0,1]) for(j=[0,1]) mirror([i,0,0]) mirror([0,j,0]) translate([hole_sep_x/2, hole_sep_y/2, 0]){
                cylinder(r=hole_rad+wall,h=bracket_thick/2, center=true);
                 cylinder(r=hole_rad+wall/2,h=bracket_thick, center=true);
             }
             //belt mount
+            mirror([0,1,0]) translate([0,pulley_rad+1,bracket_thick]) hull(){
+                cube([hole_sep_x+wall*2,wall,7],center=true);
+                translate([0,0,-bracket_thick]) cube([hole_sep_x+hole_rad*2+wall*2,wall,1],center=true);
+                translate([0,wall,-bracket_thick]) cube([hole_sep_x+hole_rad*2+wall,wall,1],center=true);
+            }
             
             //hotend clamp mount
-            translate([0,0,hotend_extend]) rotate([-90,0,0]) groovemount_screw(height = hotend_extend);
+            translate([0,hotend_y_offset,hotend_extend]) rotate([-90,0,0]) groovemount_screw(height = hotend_extend);
         }
         
         //gantry attach holes
-        for(i=[0,1]) for(j=[0,1]) mirror([i,0,0]) mirror([0,j,0]) translate([hole_sep_x, hole_sep_y, 0]){
-            cylinder(r=hole_cap_rad,h=bracket_thick);
-            cylinder(r=hole_rad,h=bracket_thick+1, center=true);
+        for(i=[0,1]) for(j=[0,1]) mirror([i,0,0]) mirror([0,j,0]) translate([hole_sep_x/2, hole_sep_y/2, 0]){
+            cylinder(r1=hole_cap_rad, r2=hole_cap_rad-3, h=bracket_thick*3);
+            cylinder(r=hole_rad,h=bracket_thick*6, center=true);
         }
-        //belt grip
         
         //belt passthrough
-        %for(i=[0,1]) mirror([0,i,0]) translate([0,pulley_rad+1,0]) cube([100,2,7],center=true);
+        for(i=[0]) mirror([0,i,0]) translate([0,pulley_rad+1,bracket_thick]) hull(){
+            cube([100,3,8],center=true);
+            translate([0,5,5]) cube([100,3,8],center=true);
+        }
+        
+        //belt grip
+        for(i=[1]) mirror([0,i,0]) translate([0,pulley_rad+1,bracket_thick]){
+            difference(){
+                translate([0,0,4]) cube([100,2.25,8+8],center=true);
+                
+                for(i=[-15:2:15]) hull(){
+                    translate([i,-1,-1]) cube([1,2,8], center=true);
+                    translate([i,-1.5,-.5]) cube([1,2,8], center=true);
+                }
+            }
+        }
         
         //hotend clamp holes
         //hotend clamp mount
-            translate([0,0,hotend_extend]) rotate([-90,0,0]) groovemount_screw(height = hotend_extend, solid=0);
+            translate([0,hotend_y_offset,hotend_extend]) rotate([-90,0,0]) groovemount_screw(height = hotend_extend, solid=0);
     }
 }
 
@@ -218,6 +238,7 @@ module groovemount_screw(solid=1,e3d=1, height = 19){
     groove = 9+2;
     thick = 5;
     length = 10;
+    heatsink_rad = 22.5/2;
     
     bowden_tube_rad = 2.5;
     
@@ -257,7 +278,11 @@ module groovemount_screw(solid=1,e3d=1, height = 19){
             }
         }
         
+        //draw in the heatsink for reference
+        %cylinder(r=heatsink_rad, h=50, center=true);
+        
         //hotend holes
+        
        render(){
            //PTFE tube hole
            translate([0,0,-inset-wall*2]) {
@@ -366,8 +391,9 @@ module rod_clamp(rad = 5, wall = 5, solid = 1, h=bracket_thick, angle = 15){
     }
 }
 
-module y_plate(){
-    motor_offset = -motor_w/2-x_bearing_rad-wall-17;
+module y_plate(front = true){
+    motor_offset = -motor_w/2-x_bearing_rad-wall-13;
+    motor_rear_offset = -29;
     translate([0,x_offset,0]) difference(){
         union(){
             hull(){
@@ -375,15 +401,21 @@ module y_plate(){
                 for(i=[0,1]) translate([-x_rod_rad,x_rod_sep*i,0])
                     for(j=[45:90:359]) rotate([0,0,j]) translate([0,x_bearing_flange/2,0]) cylinder(r=m3_rad+wall/2, h=bracket_thick, center=true);
                 
-                translate([motor_offset,x_rod_sep/2,0]) rotate([0,0,angle]) motor_body(extra = 4, thick=bracket_thick);
-                translate([motor_offset,x_rod_sep/2,0]) rotate([0,0,angle]) translate([-motor_w,0,0]) motor_body(extra = 4, thick=bracket_thick);
+                //y motor
+                translate([motor_offset,x_rod_sep/2-motor_rear_offset,0]) rotate([0,0,angle]) motor_body(extra = 4, thick=bracket_thick);
                 
+                //extruder motor   
+                translate([motor_offset,x_rod_sep/2-motor_rear_offset,0]) rotate([0,0,angle]) translate([-motor_w,0,0]) motor_body(extra = 4, thick=bracket_thick);
             }
             
             //beam mount
-            translate([motor_offset,x_rod_sep/2,0]) rotate([0,0,angle]) hull(){
+            translate([motor_offset,x_rod_sep/2-motor_rear_offset,0]) rotate([0,0,angle]) hull(){
                 motor_body(extra = 4, thick=bracket_thick);
-                translate([0,beam*4.5/2,0]) cube([beam,beam*4.5,bracket_thick],center=true);
+                if(front == true){
+                    translate([0,beam*2.5/2,0]) cube([beam,beam*2.5,bracket_thick],center=true);
+                }else{
+                    translate([0,beam*4.5/2,0]) cube([beam,beam*4.5,bracket_thick],center=true);
+                }
             }
         }
         
@@ -402,20 +434,22 @@ module y_plate(){
         }
         
         //y motor
-        translate([motor_offset,x_rod_sep/2,0]) rotate([0,0,angle]) motor_holes();
+        translate([motor_offset,x_rod_sep/2-motor_rear_offset,0]) rotate([0,0,angle]) motor_holes(slot=.5);
         
         //extruder motor
-        translate([motor_offset,x_rod_sep/2,0]) rotate([0,0,angle]) translate([-motor_w,0,0]) motor_holes();
+        translate([motor_offset,x_rod_sep/2-motor_rear_offset,0]) rotate([0,0,angle]) translate([-motor_w,0,0]) motor_holes(slot=.5);
         
         //beam mounting holes
-        translate([motor_offset,x_rod_sep/2,0]) rotate([0,0,angle]){
-            //mounting holes for the 2020 beam
-            for(i=[0:3]) translate([0,motor_w/2+beam/2+beam*i,0]) {
-                cylinder(r=m5_rad, h=bracket_thick+1, center=true);
+        translate([motor_offset,x_rod_sep/2-motor_rear_offset,0]) rotate([0,0,angle]){
+            //mounting holes for the rail - no backing beam
+            for(i=[0:3]) translate([0,motor_w/2+12.5+25*i,0]) {
+                cylinder(r=m3_rad, h=bracket_thick+1, center=true);
             }
             
-            //2020 is on the motor side, with a linear rail on top - cutout the rail for a little alignment slot.
-            translate([0,beam*5,0]) cube([linear_rail_width,beam*4,bracket_thick+1],center=true);
+            //the end of the rail is set into a slot
+            if(front == true){
+                translate([0,motor_w/2+beam*2,0]) cube([linear_rail_width,beam*4,bracket_thick+1],center=true);
+            }
         }
         
         
@@ -433,7 +467,7 @@ module spacer_plate(){
         union(){
             hull(){
                 //roller meat
-                translate([-roller_rod_rad,roller_offset_rear,0]) rod_clamp(r=roller_rod_rad+slop, solid=1);
+                translate([-roller_rod_rad,roller_offset_rear,0]) rod_clamp(rad=roller_rod_rad+slop, solid=1);
             
                 //x axis meat
                 translate([0,x_offset,0]) {
@@ -446,9 +480,9 @@ module spacer_plate(){
                     cylinder(r=x_rear_rad,h=bracket_thick, center=true);
                 
                 *translate([beam*1.25,2+roller_offset_rear+motor_w,0])
-                    rod_clamp(r=x_rod_rad+slop, solid=1, wall=4);
+                    rod_clamp(rad=x_rod_rad+slop, solid=1, wall=4);
                 *translate([-x_rod_rad,-length/2+roller_offset_rear+motor_w,0])
-                    rod_clamp(r=x_rod_rad+slop, solid=1, wall=4);
+                    rod_clamp(rad=x_rod_rad+slop, solid=1, wall=4);
             }
             
             //x axis drive motor
@@ -460,17 +494,17 @@ module spacer_plate(){
         }
         
         //roller mount
-        translate([-roller_rod_rad,roller_offset_rear,0]) rod_clamp(r=roller_rod_rad+laser_slop, solid=0);
+        translate([-roller_rod_rad,roller_offset_rear,0]) rod_clamp(rad=roller_rod_rad+laser_slop, solid=0);
         
         //x axis
         translate([0,x_offset,0]) {
-            translate([-motor_w/2,x_rod_sep/2,0]) motor_holes();
+            translate([-motor_w/2,x_rod_sep/2,0]) motor_holes(slot=.5);
             for(i=[0:1]) translate([-x_rod_rad,x_rod_sep*i,0])
-                rod_clamp(r=x_rod_rad+slop, solid=0);
+                rod_clamp(rad=x_rod_rad+laser_slop, solid=0);
         }
         
         //z axis drive motor
-        translate([-motor_w/2-z_motor_lift,roller_offset_rear-z_motor_offset,0]) motor_holes();
+        translate([-motor_w/2-z_motor_lift,roller_offset_rear-z_motor_offset,0]) motor_holes(slot=.5);
         
         //screwholes all over
         for(i=[0,3,6]) translate([beam*1.5,x_offset+beam*i,0]){
