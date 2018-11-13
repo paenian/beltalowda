@@ -95,6 +95,14 @@ if(part == 3.5){
     projection() y_plate();
 }
 
+if(part == 33){
+    y_plate(front = true);
+}
+
+if(part == 33.5){
+    projection() y_plate(front = true);
+}
+
 if(part == 4){
     echo("Print 3 roller mounts!");
     mirror([0,0,1]) roller_mount();
