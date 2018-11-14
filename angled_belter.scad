@@ -141,20 +141,21 @@ module assembled(){
     
     //side brackets
     *for(i=[0]) for(j=[0,1]) mirror([j,0,0])
-        translate([-length/2-bracket_thick/2,i*(length/2-beam*3),0]) rotate([0,-90,0]) rotate([0,0,-90]) side_bracket(feet=true);
+        translate([-length/2-bracket_thick/2,i*(length/2-beam*3),0]) rotate([0,-90,0]) rotate([0,0,-90]) render() side_bracket(feet=true);
     
     //corner brackets
     for(i=[0,1]) for(j=[0,1]) mirror([j,0,0]) mirror([0,i,0])
-        translate([-length/2-bracket_thick/2,length/2,beam]) mirror([i,0,0]) rotate([0,-90,0]) rotate([0,0,-90])  side_bracket(feet=true, corner=true);
+        translate([-length/2-bracket_thick/2,length/2,beam]) mirror([i,0,0]) rotate([0,-90,0]) rotate([0,0,-90]) render() side_bracket(feet=true, corner=true);
     
     for(i=[0,1]) mirror([i,0,0]) translate([-length/2+beam+bracket_thick/2,0,beam*1.5]) rotate([0,90,0]) {
-        spacer_plate();
+        render() spacer_plate();
     } 
     
+    //y axis
     translate([0,0,beam*1.5]) rotate([0,90,0]) {
-        y_plate(front = false);
-        translate([0,0,bracket_thick]) y_plate(front = true);
-    } 
+        render() y_plate(front = false);
+        render() translate([0,0,bracket_thick]) y_plate(front = true);
+    }
 }
 
 module frame(){
@@ -175,7 +176,7 @@ module frame(){
     }
     
     //bed beams
-    for(j=[1]) for(i=[0:2]) translate([-length/2,roller_offset_rear+roller_rad+beam+i*beam*2,beam*2*j]) rotate([90,0,0]) rotate([0,90,0]) beam_2040(height = length, v=false);
+    for(j=[1.5]) for(i=[0:2]) translate([-length/2,roller_offset_rear+roller_rad+beam+i*beam*2,beam*2*j]) rotate([90,0,0]) rotate([0,90,0]) beam_2040(height = length, v=false);
 }
 
 screw_mount_rad = 5;
@@ -189,6 +190,7 @@ module y_gantry(){
     hotend_extend = 20;
     hotend_y_offset = -5;
     pulley_rad = 6;
+    
     
     difference(){
         union(){
@@ -247,6 +249,7 @@ module groovemount_screw(solid=1,e3d=1, height = 19){
     thick = 5;
     length = 10;
     heatsink_rad = 22.5/2;
+    hotend_len = 63; //length from top to nozzle tip
     
     bowden_tube_rad = 2.5;
     
@@ -286,11 +289,13 @@ module groovemount_screw(solid=1,e3d=1, height = 19){
             }
         }
         
-        //draw in the heatsink for reference
-        %cylinder(r=heatsink_rad, h=50, center=true);
+        //draw in the hotend for reference
+        %union(){
+            cylinder(r=dia/2, h=hotend_len-10, center=false);
+            cylinder(r=1, h=hotend_len, center=false);
+        }
         
         //hotend holes
-        
        render(){
            //PTFE tube hole
            translate([0,0,-inset-wall*2]) {
@@ -457,10 +462,14 @@ module y_plate(front = true){
             //the end of the rail is set into a slot
             if(front == true){
                 translate([0,motor_w/2+beam*2,0]) cube([linear_rail_width,beam*4,bracket_thick+1],center=true);
+                
+                //draw in the beam
+                %translate([0,motor_w/2+length/2,linear_rail_width/2]) cube([linear_rail_width, length, linear_rail_width], center=true);
+                
+                //and rough in the carriage
+                %translate([0,motor_w/2+47,linear_rail_width]) rotate([0,0,-90]) y_gantry();
             }
         }
-        
-        
     }
 }
 
