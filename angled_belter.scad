@@ -467,7 +467,7 @@ module rod_clamp(rad = 5, wall = 5, solid = 1, h=bracket_thick, angle = 15){
     }
 }
 
-module y_plate(front = true){
+module y_plate(front = false){
     motor_offset = -motor_w/2-x_bearing_rad-wall-13;
     motor_rear_offset = -29;
     translate([0,x_offset,0]) difference(){
