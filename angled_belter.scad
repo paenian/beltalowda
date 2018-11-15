@@ -32,12 +32,19 @@ circular_pitch = 360*distance_between_axles/(small_teeth+big_teeth);
 //x axis
 x_rod_rad = 6;
 x_rod_sep = motor_w+x_rod_rad*4;
-x_bearing_flange = 32;
-x_bearing_rad = 11;
-x_nut_rad = 10.3/2;
-x_nut_screw_rad = 16/2;
+x_bearing_flange = 31.5;
+x_bearing_flange_rad = 42/2;
+x_bearing_rad = 21/2;
+
+back_flange_rad = 36.5/2;
+back_nut_rad = 20/2;
+back_screw_sep = 26.4;
+
+//x_nut_rad = 10.3/2;
+//x_nut_screw_rad = 16/2;
 
 linear_rail_width = 12;
+linear_rail_height = 8;
 
 
 //positioning offsets
@@ -56,7 +63,7 @@ bed_lift = roller_rod_rad+roller_rad; //in*1/16; //put a little insulation under
 
 chamfer = 1.5;
 
-part = 100;
+part = 8;
 mirror = 0;
 
 if(part == 1){
@@ -124,12 +131,17 @@ if(part == 7){
 }
 
 if(part == 8){
-    echo("Print one extruder");
-    extruder();
+    echo("Print one y endcap");
+    endcap();
 }
 
 if(part == 9){
-    echo("Print 6 or 8 feet");
+    echo("Print one extruder assembly");
+    extruder();
+}
+
+if(part == 10){
+    echo("Print 6ish feet");
     rubber_foot();
 }
 
@@ -176,7 +188,55 @@ module frame(){
     }
     
     //bed beams
-    for(j=[1.5]) for(i=[0:2]) translate([-length/2,roller_offset_rear+roller_rad+beam+i*beam*2,beam*2*j]) rotate([90,0,0]) rotate([0,90,0]) beam_2040(height = length, v=false);
+    for(j=[1.5]) for(i=[0:6]) translate([-length/2,roller_offset_rear+roller_rad+beam+i*beam*2,beam*2*j]) rotate([90,0,0]) rotate([0,90,0]) beam_2040(height = length, v=false);
+}
+
+//this goes on the end of the Y axis and tensions the belt.
+module endcap(length = 29){
+    min_rad = wall/2;
+    difference(){
+        union(){
+            minkowski(){
+                cube([linear_rail_width+wall, linear_rail_height+wall, length+wall], center=true);
+                sphere(r=min_rad, $fn=6);
+            }
+            
+            //belt pulley mount
+            translate([0,-linear_rail_height/2-wall/2,0]) rotate([90,0,0]) cylinder(r1=linear_rail_width/2+wall, r2=m5_rad+.75, h=wall+bracket_thick);
+        }
+        
+        //rail cutout
+        translate([0,0,-wall*3-slop]) cube([linear_rail_width+slop*2, linear_rail_height+slop*2, length+slop*2], center=true);
+        
+        //tensioner
+        translate([0,0,length/2+wall]){
+            translate([0,0,-wall*2+m5_nut_height+1+.25]) cylinder(r=m5_rad, h=length);
+            
+            translate([0,0,-wall*2]){
+                cylinder(r1=m5_nut_rad+.25, r2=m5_nut_rad, h=m5_nut_height+1, $fn=6);
+            
+                //place to insert the nut
+                hull(){
+                    translate([0,0,-length-wall]) cylinder(r=m5_nut_rad+1, h=.1);
+                    cylinder(r1=m5_nut_rad+.25, r2=m5_nut_rad, h=.1, $fn=6);
+                }
+            }
+        }
+        
+        //belt nut and shaft
+        translate([0,-linear_rail_height/2,0]) rotate([90,0,0]){
+            cylinder(r1=m5_nut_rad+.25, r2=m5_nut_rad, h=m5_nut_height+1, $fn=6);
+            
+            //place to insert the nut
+            hull(){
+                translate([0,0,-linear_rail_height-wall]) cylinder(r=m5_nut_rad+1, h=.1);
+                cylinder(r1=m5_nut_rad+.25, r2=m5_nut_rad, h=.1, $fn=6);
+            }
+            
+            //shaft
+            rotate([0,0,180]) cap_cylinder(r=m5_rad, h=50, center=true);
+        }
+    }
 }
 
 screw_mount_rad = 5;
@@ -432,10 +492,11 @@ module y_plate(front = true){
             }
         }
         
-        //x drive screw
+        //x drive nut
         translate([-motor_w/2,x_rod_sep/2,0]){
-            cylinder(r = x_nut_rad, h=bracket_thick+1, center=true);
-                for(j=[45:90:359]) rotate([0,0,j]) translate([0,x_nut_screw_rad,0]) cylinder(r=m3_rad, h=bracket_thick+1, center=true);
+            cylinder(r = back_nut_rad, h=bracket_thick+1, center=true);
+                for(j=[90:180:359]) rotate([0,0,j]) translate([0,back_screw_sep/2,0]) cylinder(r=m4_rad, h=bracket_thick+1, center=true);
+            %translate([0,0,bracket_thick+2.1]) mirror([0,0,1]) backlash_nut();
         }
         
         
@@ -443,7 +504,9 @@ module y_plate(front = true){
         for(i=[0,1]) translate([-x_rod_rad,x_rod_sep*i,0]) {
                 cylinder(r=x_bearing_rad, h=bracket_thick+1, center=true);
             
-            for(j=[45:90:359]) rotate([0,0,j]) translate([0,x_bearing_flange/2,0]) cylinder(r=m3_rad, h=bracket_thick+1, center=true);
+            for(j=[45:90:359]) rotate([0,0,j]) translate([0,x_bearing_flange/2,0]) cylinder(r=m4_rad, h=bracket_thick+1, center=true);
+                
+            %translate([0,0,-bracket_thick]) lm12uuf();
         }
         
         //y motor
@@ -471,6 +534,27 @@ module y_plate(front = true){
             }
         }
     }
+}
+
+module backlash_nut(){
+    //flange
+    cylinder(r=back_flange_rad, h=5);
+    
+    //screws
+    for(i=[0,1]) mirror([i,0,0]) translate([back_screw_sep/2,0,0]) cylinder(r=m4_rad, h=25, center=true);
+    
+    //shaft
+    cylinder(r=back_nut_rad, h=23);
+}
+
+module lm12uuf(){
+      translate([0,0,-3]) cylinder(r=x_bearing_rad, h=57);
+            
+      intersection(){
+          cube([x_bearing_flange, x_bearing_flange, 6], center=true);
+          cylinder(r=x_bearing_flange_rad, h=7, center=true);
+      }
+            
 }
 
 module spacer_plate(){
