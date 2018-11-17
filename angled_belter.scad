@@ -63,7 +63,7 @@ bed_lift = roller_rod_rad+roller_rad; //in*1/16; //put a little insulation under
 
 chamfer = 1.5;
 
-part = 3.5;
+part = 8;
 mirror = 0;
 
 if(part == 1){
@@ -209,7 +209,7 @@ module endcap(length = 29){
         }
         
         //rail cutout
-        translate([0,0,-wall*3-slop]) cube([linear_rail_width+slop*2, linear_rail_height+slop*2, length+slop*2], center=true);
+        translate([0,0,-wall]) cube([linear_rail_width+slop*4, linear_rail_height+slop*4, length], center=true);
         
         //tensioner
         translate([0,0,length/2+wall]){
@@ -232,7 +232,7 @@ module endcap(length = 29){
             
             //place to insert the nut
             hull(){
-                translate([0,0,-linear_rail_height-wall]) cylinder(r=m5_nut_rad+1, h=.1);
+                translate([0,0,-linear_rail_height-wall]) rotate([0,0,180]) cap_cylinder(r=m5_nut_rad+1, h=.1);
                 cylinder(r1=m5_nut_rad+.25, r2=m5_nut_rad, h=.1, $fn=6);
             }
             
@@ -715,18 +715,18 @@ module side_bracket(feet = false, cut = false, thick=bracket_thick, corner=false
             }
         }
 
-        for(i=[-10,10]) for(j=[-40,40]) translate([i,j,0]){
+        for(i=[-beam/2, beam/2]) for(j=[-beam*2,beam*2]) translate([i,j,0]){
             cylinder(r=m5_rad, h=thick*2, center=true);
             cylinder(r=m5_cap_rad, h=thick*2);
         }
         
         if(corner == true){
-            for(i=[-beam/2, beam/2]) for(j=[-20,0,20]) translate([i,j,0]){
+            for(i=[-beam/2, beam/2]) for(j=[-beam,0,beam]) translate([i,j,0]){
                 cylinder(r=m5_rad, h=thick*2, center=true);
                 cylinder(r=m5_cap_rad, h=thick*2);
             }
         }else{
-            for(i=[0]) for(j=[-20,0,20]) translate([i,j,0]){
+            for(i=[0]) for(j=[-beam,0,beam]) translate([i,j,0]){
                 cylinder(r=m5_rad, h=thick*2, center=true);
                 cylinder(r=m5_cap_rad, h=thick*2);
             }
