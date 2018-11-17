@@ -63,7 +63,7 @@ bed_lift = roller_rod_rad+roller_rad; //in*1/16; //put a little insulation under
 
 chamfer = 1.5;
 
-part = 3.5;
+part = 100;
 mirror = 0;
 
 if(part == 1){
@@ -175,13 +175,13 @@ module assembled(){
 
 module frame(){
     //base
-    for(i=[0,1]) mirror([i,0,0]) translate([length/2-beam/2,-length/2,0]) rotate([0,90,0]) rotate([-90,0,0]) beam_2060(height = length, v=false);
+    for(i=[0,1]) mirror([i,0,0]) translate([length/2-beam/2,-length/2,0]) rotate([0,90,0]) rotate([-90,0,0]) render() beam_2060(height = length, v=false);
       
       //don't think this is necessary - the feet will handle the separation.  Or maybe should have this, but no feet...
-    for(i=[0,1]) mirror([0,i,0]) translate([-length/2,length/2+beam/2,0]) rotate([0,90,0]) rotate([0,0,0]) beam_2060(height = length, v=false);
+    for(i=[0,1]) mirror([0,i,0]) translate([-length/2,length/2+beam/2,0]) rotate([0,90,0]) rotate([0,0,0]) render() beam_2060(height = length, v=false);
         
     //bottom 'feet'
-    *for(i=[-1,0,1]) translate([-length/2,i*length/2,-beam*2]) rotate([90,0,0]) rotate([0,90,0]) beam_2040(height = length, v=false);
+    *for(i=[-1,0,1]) translate([-length/2,i*length/2,-beam*2]) rotate([90,0,0]) rotate([0,90,0]) render() beam_2040(height = length, v=false);
     
     
     //y rollers
@@ -191,7 +191,7 @@ module frame(){
     }
     
     //bed beams
-    for(j=[1.5]) for(i=[0:6]) translate([-length/2,roller_offset_rear+roller_rad+beam+i*beam*2,beam*2*j]) rotate([90,0,0]) rotate([0,90,0]) beam_2040(height = length, v=false);
+    for(j=[1.5]) for(i=[0:6]) translate([-length/2,roller_offset_rear+roller_rad+beam+i*beam*2,beam*2*j]) rotate([90,0,0]) rotate([0,90,0]) render() beam_2040(height = length, v=false);
 }
 
 //this goes on the end of the Y axis and tensions the belt.
@@ -470,6 +470,9 @@ module rod_clamp(rad = 5, wall = 5, solid = 1, h=bracket_thick, angle = 15){
 module y_plate(front = false){
     motor_offset = -motor_w/2-x_bearing_rad-wall-13;
     motor_rear_offset = -29;
+    
+    beam_offset = [motor_w/2+linear_rail_width/2,-motor_w/2,linear_rail_width/2];
+     
     translate([0,x_offset,0]) difference(){
         union(){
             hull(){
@@ -521,19 +524,19 @@ module y_plate(front = false){
         //beam mounting holes
         translate([motor_offset,x_rod_sep/2-motor_rear_offset,0]) rotate([0,0,angle]){
             //mounting holes for the rail - no backing beam
-            for(i=[0:3]) translate([0,motor_w/2+12.5+25*i,0]) {
+            #for(i=[0:3]) translate(beam_offset+[0,12.5+25*i,-bracket_thick/2]) {
                 cylinder(r=m3_rad, h=bracket_thick+1, center=true);
             }
             
             //the end of the rail is set into a slot
             if(front == true){
-                translate([0,motor_w/2+beam*2,0]) cube([linear_rail_width,beam*4,bracket_thick+1],center=true);
+                translate(beam_offset+[0,beam*2,-bracket_thick/2]) cube([linear_rail_width,beam*4,bracket_thick+1],center=true);
                 
                 //draw in the beam
-                %translate([0,motor_w/2+length/2,linear_rail_width/2]) cube([linear_rail_width, length, linear_rail_width], center=true);
+                %translate(beam_offset+[0,length/2,0]) cube([linear_rail_width, length, linear_rail_width], center=true);
                 
                 //and rough in the carriage
-                %translate([0,motor_w/2+47,linear_rail_width]) rotate([0,0,-90]) y_gantry();
+                %translate(beam_offset + [0,73,linear_rail_width]) rotate([0,0,-90]) render() y_gantry();
             }
         }
     }
