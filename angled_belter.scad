@@ -12,9 +12,9 @@ roller_drop = 1;
 roller_len = in*14;
 roller_offset_front = roller_rad+10;
 roller_span = 340;
-
-
 roller_inside_rad = 2.075/2*in-.05;
+
+
 bearing_rad = 26/2+.125;
 bearing_rad = 32/2+.125;    //switch everything to 12mm rods?  Or keep the rollers on 10mm?
 bearing_thick = 8;
@@ -47,12 +47,7 @@ linear_rail_width = 12;
 linear_rail_height = 8;
 
 
-//positioning offsets
-//offset of the rear x bar
-x_rear_rad = x_bearing_flange/2+wall+1;
-x_offset = -length/2+x_rear_rad;
 
-roller_offset_rear = x_offset+x_rod_sep+x_bearing_flange/2+roller_rad+wall;
 
 echo(big_teeth/small_teeth);
 
@@ -154,6 +149,8 @@ if(part == 100){
 module assembled(){
     frame();
     
+    #rods_and_rails();
+    
     //side brackets
     *for(i=[0]) for(j=[0,1]) mirror([j,0,0])
         translate([-length/2-bracket_thick/2,i*(length/2-beam*3),0]) rotate([0,-90,0]) rotate([0,0,-90]) render() side_bracket(feet=true);
@@ -167,7 +164,7 @@ module assembled(){
     } 
     
     //y axis
-    translate([0,0,beam*1.5]) rotate([0,90,0]) {
+    translate([0,x_offset,beam*1.5]) rotate([0,90,0]) {
         render() y_plate(front = false);
         render() translate([0,0,bracket_thick]) y_plate(front = true);
     }
@@ -182,13 +179,6 @@ module frame(){
         
     //bottom 'feet'
     *for(i=[-1,0,1]) translate([-length/2,i*length/2,-beam*2]) rotate([90,0,0]) rotate([0,90,0]) render() beam_2040(height = length, v=false);
-    
-    
-    //y rollers
-    for(i=[0,1]) translate([0,roller_offset_rear+i*roller_span,beam*1.5+roller_rod_rad]) rotate([90,0,0]) rotate([0,90,0]) {
-        cylinder(r=roller_rad, h=roller_len, center=true);
-        cylinder(r=roller_rod_rad, h=length, center=true);
-    }
     
     //bed beams
     for(j=[1.5]) for(i=[0:6]) translate([-length/2,roller_offset_rear+roller_rad+beam+i*beam*2,beam*2*j]) rotate([90,0,0]) rotate([0,90,0]) render() beam_2040(height = length, v=false);
@@ -467,13 +457,45 @@ module rod_clamp(rad = 5, wall = 5, solid = 1, h=bracket_thick, angle = 15){
     }
 }
 
-module y_plate(front = false){
-    motor_offset = -motor_w/2-x_bearing_rad-wall-13;
-    motor_rear_offset = -29;
+
+
+
+//positioning offsets
+//offset of the rear x bar
+x_rear_rad = x_bearing_flange/2+wall+1;
+x_offset = -length/2+x_rear_rad;
+roller_offset_rear = x_offset+x_rod_sep+x_bearing_flange/2+roller_rad+wall;
+
+motor_offset = -motor_w/2-x_bearing_rad-wall-13;
+motor_rear_offset = -29;
+y_motor_offset = [-motor_w/2-x_bearing_rad-wall-13, 29];
+
+carriage_height = 4.5;
+y_beam_offset = [motor_w/2+linear_rail_width/2,-motor_w/2,0];
+
+front_beam_offset = y_beam_offset + [linear_rail_width/2+linear_rail_height/2+carriage_height,motor_w/2,0];
+
+module rods_and_rails(solid = 1){
+    //z rollers
+    for(i=[0,1]) translate([0,roller_offset_rear+i*roller_span,beam*1.5+roller_rod_rad]) rotate([90,0,0]) rotate([0,90,0]) {
+        if(solid == 1){
+            cylinder(r=roller_rad, h=roller_len, center=true);
+            cylinder(r=roller_rod_rad, h=length, center=true);
+        }else{
+            rod_clamp(rad=roller_rod_rad+laser_slop, solid=0);
+        }
+    }
     
-    beam_offset = [motor_w/2+linear_rail_width/2,-motor_w/2,linear_rail_width/2];
-     
-    translate([0,x_offset,0]) difference(){
+    //y rail
+    translate([0,x_offset,beam*1.5]) rotate([0,90,0]) {
+        translate([motor_offset,x_rod_sep/2-motor_rear_offset,0]) rotate([0,0,angle]) translate(y_beam_offset+[0,x_offset+length,linear_rail_width/2]) cube([linear_rail_width, length, linear_rail_height], center=true);
+    }
+}
+
+module y_plate(front = false){
+
+    
+    difference(){
         union(){
             hull(){
                 //flanged bearings
@@ -491,9 +513,9 @@ module y_plate(front = false){
             translate([motor_offset,x_rod_sep/2-motor_rear_offset,0]) rotate([0,0,angle]) hull(){
                 motor_body(extra = 4, thick=bracket_thick);
                 if(front == true){
-                    translate([0,beam*2.5/2,0]) cube([beam,beam*2.5,bracket_thick],center=true);
+                    translate(y_beam_offset+[0,beam*2.5/2,0]) cube([beam,beam*2.5,bracket_thick],center=true);
                 }else{
-                    translate([0,beam*4.5/2,0]) cube([beam,beam*4.5,bracket_thick],center=true);
+                    translate(y_beam_offset+[0,beam*4.5/2,0]) cube([beam,beam*4.5,bracket_thick],center=true);
                 }
             }
         }
@@ -507,7 +529,7 @@ module y_plate(front = false){
         
         
         //x bearing flanges
-        for(i=[0,1]) translate([-x_rod_rad,x_rod_sep*i,0]) {
+        *for(i=[0,1]) translate([-x_rod_rad,x_rod_sep*i,0]) {
                 cylinder(r=x_bearing_rad, h=bracket_thick+1, center=true);
             
             for(j=[45:90:359]) rotate([0,0,j]) translate([0,x_bearing_flange/2,0]) cylinder(r=m4_rad, h=bracket_thick+1, center=true);
@@ -524,19 +546,23 @@ module y_plate(front = false){
         //beam mounting holes
         translate([motor_offset,x_rod_sep/2-motor_rear_offset,0]) rotate([0,0,angle]){
             //mounting holes for the rail - no backing beam
-            #for(i=[0:3]) translate(beam_offset+[0,12.5+25*i,-bracket_thick/2]) {
+            for(i=[0:3]) translate(y_beam_offset+[0,12.5+25*i,0]) {
                 cylinder(r=m3_rad, h=bracket_thick+1, center=true);
             }
             
             //the end of the rail is set into a slot
             if(front == true){
-                translate(beam_offset+[0,beam*2,-bracket_thick/2]) cube([linear_rail_width,beam*4,bracket_thick+1],center=true);
+                translate(y_beam_offset+[0,beam*2,0]) cube([linear_rail_width,beam*4,bracket_thick+1],center=true);
                 
                 //draw in the beam
-                %translate(beam_offset+[0,length/2,0]) cube([linear_rail_width, length, linear_rail_width], center=true);
+                *translate(y_beam_offset+[0,length/2,linear_rail_width/2]) cube([linear_rail_width, length, linear_rail_height], center=true);
+                
+                //draw in the mounting beams
+                *translate(front_beam_offset) rotate([90,0,0]) rotate([0,90,0]) cube([linear_rail_width, length, linear_rail_height], center=true);
+                *translate(front_beam_offset) rotate([90,0,0]) rotate([0,90,0]) cube([linear_rail_width, length, linear_rail_height], center=true);
                 
                 //and rough in the carriage
-                %translate(beam_offset + [0,73,linear_rail_width]) rotate([0,0,-90]) render() y_gantry();
+                %translate(y_beam_offset + [0,129,linear_rail_width]) rotate([0,0,-90]) render() y_gantry();
             }
         }
     }
@@ -601,7 +627,8 @@ module spacer_plate(){
         }
         
         //roller mount
-        translate([-roller_rod_rad,roller_offset_rear,0]) rod_clamp(rad=roller_rod_rad+laser_slop, solid=0);
+        *translate([-roller_rod_rad,roller_offset_rear,0]) rod_clamp(rad=roller_rod_rad+laser_slop, solid=0);
+        #rods_and_rails(solid = 0);
         
         //x axis
         translate([0,x_offset,0]) {
