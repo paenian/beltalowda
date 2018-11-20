@@ -58,7 +58,7 @@ bed_lift = roller_rod_rad+roller_rad; //in*1/16; //put a little insulation under
 
 chamfer = 1.5;
 
-part = 100;
+part = 11;
 mirror = 0;
 
 if(part == 1){
@@ -143,6 +143,17 @@ if(part == 10){
     rubber_foot();
 }
 
+if(part == 11){
+    echo("Print 4 12mm clamps");
+    smooth_rod_clamp(rad = x_rod_rad);
+}
+
+if(part == 12){
+    echo("Print 2 10mm clamps");
+    smooth_rod_clamp(rad = rod_rad);
+}
+
+
 if(part == 100){
     assembled();
 }
@@ -182,6 +193,38 @@ module frame(){
     
     //bed beams
     for(j=[1.5]) for(i=[0:6]) translate([-length/2,roller_offset_rear+roller_rad+beam+i*beam*2,beam*2*j]) rotate([90,0,0]) rotate([0,90,0]) render() beam_2040(height = length, v=false);
+}
+
+module smooth_rod_clamp(rad = 5, inset=.125){
+    screw_sep  = rad + m5_cap_rad;
+    screw_height = 9;
+    echo(wall);
+    difference(){
+        union(){
+            translate([0,0,rad]) rotate([90,0,0]) hull(){
+                cylinder(r=rad+wall, h=beam-2, center=true);
+                cylinder(r=rad+wall-1, h=beam, center=true);
+            }
+            
+            for(i=[0,1]) mirror([i,0,0]) translate([screw_sep,0,0]) hull() {
+                cylinder(r=m5_rad+wall, h=screw_height+1);
+            }
+        }
+        
+        rotate([90,0,0]) hull(){
+            cylinder(r=rad+slop, h=beam+1, center=true);
+            translate([0,rad,0]) rotate([0,0,180]) cap_cylinder(r=rad+slop, h=beam+1, center=true);
+        }
+        
+        //screwholes
+        for(i=[0,1]) mirror([i,0,0]) translate([screw_sep,0,0]) {
+            cylinder(r=m5_rad+slop, h=screw_height*3, center=true);
+            translate([0,0,screw_height]) cylinder(r=m5_cap_rad+slop, h=wall*3);
+        }
+        
+        //flatten the bottom
+        translate([0,0,-50+inset]) cube([100,100,100], center=true);
+    }
 }
 
 //this goes on the end of the Y axis and tensions the belt.

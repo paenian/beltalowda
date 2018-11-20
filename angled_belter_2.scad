@@ -47,21 +47,23 @@ screw_mount_screw_sep = 20;
 
 //positioning variables
 x_rail_offset_rear = [0,-length/2-beam/2,0];
-x_rail_offset_front = x_rail_offset_rear + [0,73,beam/2];
+x_rail_offset_front = x_rail_offset_rear + [0,93,beam/2];
 
 roller_offset_rear = x_rail_offset_front+[0,roller_rad+19,0];
 roller_offset_front = roller_rad+27;
 
+x_motor_offset = x_rail_offset_rear+[0,motor_w/2+linear_rail_width+wall,beam*1.5+motor_w/2];
 
-y_beam_offset = [motor_w/2+linear_rail_width/2,-motor_w/2,0];
+y_motor_offset = x_motor_offset + [0,motor_w/2, motor_w/2];
+y_beam_offset = [0,-motor_w/2,0];
+
+
 
 
 motor_offset = -motor_w/2-x_bearing_rad-wall-13;
 motor_rear_offset = -29;
-y_motor_offset = [-motor_w/2-x_bearing_rad-wall-13, 29];
 
 carriage_height = 4.5;
-y_beam_offset = [motor_w/2+linear_rail_width/2,-motor_w/2,0];
 
 front_beam_offset = y_beam_offset + [linear_rail_width/2+linear_rail_height/2+carriage_height,motor_w/2,0];
 
@@ -110,6 +112,7 @@ module rods_and_rails(solid = 0){
             cylinder(r=roller_rad, h=roller_len, center=true);
             cylinder(r=roller_rod_rad, h=length, center=true);
         }else{
+            cylinder(r=roller_rad, h=roller_len, center=true);
             cylinder(r=roller_rod_rad, h=length, center=true);
             for(i=[0,1]) mirror([0,0,i]) translate([0,0,length/2-beam]) rotate([0,0,-90]) rod_clamp(rad=roller_rod_rad+laser_slop, solid=0);
         }
@@ -120,19 +123,20 @@ module rods_and_rails(solid = 0){
     translate(x_rail_offset_front+[0,0,beam*1.5+linear_rail_height/2]) rotate([0,90,0]) rotate([0,0,90]) rotate([0,0,angle]) linear_rail();
     
     //x motor
-    translate(x_rail_offset_rear+[0,motor_w/2+linear_rail_width,beam*1.5+motor_w/2]) rotate([0,90,0]) {
+    translate(x_motor_offset) rotate([0,90,0]) {
         cylinder(r=4, h=length, center=true);
         if(solid != 1)
             for(i=[0,1]) mirror([0,0,i]) translate([0,0,length/2-beam]) motor_holes();
     }
     
-    
-    echo(x_rail_offset_front);
-    
-    //y rail
-    translate([0,x_offset,beam*1.5]) rotate([0,90,0]) {
-        translate([motor_offset,x_rod_sep/2-motor_rear_offset,0]) rotate([0,0,angle]) translate(y_beam_offset+[0,x_offset+length,linear_rail_width/2])
-        rotate([90,0,0]) linear_rail();
+    //y motor
+    translate(y_motor_offset) rotate([0,90,0]) rotate([0,0,angle]) {
+        if(solid != 1) {
+            motor_holes();
+            
+            //y rail
+            translate([0,motor_w/2+length/2,0]) rotate([90,0,0]) linear_rail();
+        }
     }
 }
 
