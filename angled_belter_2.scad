@@ -48,18 +48,21 @@ back_screw_sep = 26.4;
 screw_mount_rad = 5;
 screw_mount_screw_sep = 20;
 
-2
 //positioning variables
 x_rail_offset_rear = [0,-length/2-beam/2,0];
-x_rail_offset_front = x_rail_offset_rear + [0,71,0];
+x_rail_offset_front = x_rail_offset_rear + [0,71,23];
 
-roller_offset_rear = x_rail_offset_front+[0,roller_rad+19,0];
-roller_offset_front = [0,length/2-roller_rad-beam,0];
+roller_offset_rear = [0,x_rail_offset_front[1] + roller_rad+23,beam*1.5+roller_rod_rad];
+roller_offset_front = [0,length/2-roller_rad-beam,beam*1.5+roller_rod_rad];
 
 x_motor_offset = x_rail_offset_rear+[0,motor_w/2+linear_rail_width+wall/2,beam*1.5+motor_w/2];
 
-y_motor_offset = x_motor_offset + [0,motor_w/2+72, motor_w/2];
-y_beam_offset = [0,-motor_w/2,0];
+
+
+y_beam_offset = x_motor_offset + [0,motor_w/2, motor_w/2];
+y_beam_inset = 7.5;
+y_motor_offset = [-motor_w/2-linear_rail_width/2, motor_w/2, 0];
+//The Motor is dependent on the beam - this is an offset from the beam.
 
 bed_height = roller_rad+roller_rod_rad+3;
 bed_height = beam*2;
@@ -70,6 +73,10 @@ bed_offset_rear = -89;
 
 
 part = 100;
+
+if(part == 1){
+    spacer_plate_drive();
+}
 
 if(part == 100){
     assembled();
@@ -84,9 +91,8 @@ module assembled(){
     for(i=[0,1]) for(j=[0,1]) mirror([j,0,0]) mirror([0,i,0])
         translate([-length/2-bracket_thick/2,length/2,beam]) mirror([i,0,0]) rotate([0,-90,0]) rotate([0,0,-90]) render() side_bracket(feet=true, corner=true);
     
-    for(i=[0,1]) mirror([i,0,0]) translate([-length/2+beam+bracket_thick/2,0,beam*1.5]) rotate([0,90,0]) {
-        render() spacer_plate();
-    } 
+    spacer_plate_drive();
+    spacer_plate_idler();
     
     //y axis
     translate([0,x_offset,beam*1.5]) rotate([0,90,0]) {
@@ -105,17 +111,19 @@ module frame(){
 }
 
 module rods_and_rails(solid = 0){
-    //z rollers
-    for(i=[roller_offset_rear,roller_offset_front]) translate(i+[0,0,beam*1.5+roller_rod_rad]) rotate([90,0,0]) rotate([0,90,0]) {
-        cylinder(r=roller_rad, h=roller_len, center=true);
-        cylinder(r=roller_rod_rad, h=length, center=true);
-    }
-    
     //x rails
     translate(x_rail_offset_rear+[0,0,beam*1.5+linear_rail_height/2]) rotate([0,90,0]) rotate([0,0,90]) linear_rail();
-    translate(x_rail_offset_front+[0,0,beam*1.5+linear_rail_height/2]) rotate([0,90,0]) rotate([0,0,90]) linear_rail();
+    translate(x_rail_offset_front+[0,0,beam*1.5+linear_rail_height/2]) rotate([0,90,0]) rotate([0,0,90]) rotate([0,0,angle]) {
+        linear_rail();
+        translate([-beam/2,-beam/2-linear_rail_height/2,-(length-beam*2-bracket_thick*2-1)/2]) {
+            beam_2040(height = length-beam*2-bracket_thick*2-1);
+            //beam screwholes
+            for(i=[-beam/2, beam/2]) translate([i,0,-beam*2]) cylinder(r=m5_rad, h=length+beam);
+        }
+        
+    }
     
-    //x motor
+    //x axis
     translate(x_motor_offset) rotate([0,90,0]) {
         cylinder(r=4, h=length, center=true);
         if(solid != 1) {
@@ -125,14 +133,96 @@ module rods_and_rails(solid = 0){
         }
     }
     
-    //y motor
-    translate(y_motor_offset) rotate([0,90,0]) rotate([0,0,angle]) {
+    //y axis   
+    translate(y_beam_offset) rotate([0,90,0]) rotate([0,0,angle]) {
         if(solid != 1) {
-            motor_holes();
-            
             //y rail
-            translate([0,motor_w/2+length/2,0]) rotate([90,0,0]) linear_rail();
-            #translate([0,motor_w+37,0]) rotate([0,0,-90]) y_gantry();
+            translate([0,length/2-y_beam_inset,0]) rotate([90,0,0]) linear_rail();
+            translate([0,motor_w+37,0]) rotate([0,0,-90]) y_gantry();
+            
+            translate(y_motor_offset) motor_holes();
+        }
+    }
+    
+    //z rollers
+    for(i=[roller_offset_rear,roller_offset_front]) translate(i) rotate([90,0,0]) rotate([0,90,0]) {
+        cylinder(r=roller_rad, h=roller_len, center=true);
+        cylinder(r=roller_rod_rad, h=length, center=true);
+    }
+    
+    //z motor
+    z_angle = 25;
+    translate(roller_offset_rear+[length/2-beam,0,0])
+    rotate([z_angle,0,0]) translate([0,0,distance_between_axles]) rotate([-z_angle,0,0])
+    rotate([0,90,0]) motor_holes();
+    
+    echo("roller sep = ");
+    echo(roller_offset_front - roller_offset_rear);
+    echo("Belt Length = ");
+    echo((roller_offset_front - roller_offset_rear)[1] * 2 + 2*3.14159*roller_rad);
+}
+
+module spacer_plate_drive(){
+    difference(){
+        translate([length/2-beam-bracket_thick/2,0,0])
+        hull(){
+            translate([0,-length/2,beam*2]) rotate([0,90,0]) cylinder(r=beam, h=bracket_thick, center=true);
+            translate(roller_offset_rear) rotate([0,90,0]) cylinder(r=beam, h=bracket_thick, center=true);
+            //x motor
+            translate(x_motor_offset) rotate([0,90,0]) cylinder(r=motor_r, h=bracket_thick, center=true);
+            
+            //z motor
+            z_angle = 25;
+            translate(roller_offset_rear) rotate([z_angle,0,0]) translate([0,0,distance_between_axles]) rotate([-z_angle,0,0]) rotate([0,90,0]) cylinder(r=motor_r, h=bracket_thick, center=true);
+            
+            //screwhole meat
+            translate([0,-length/2+beam*5,beam/2]) rotate([0,90,0]) cylinder(r=beam, h=bracket_thick, center=true);
+            translate([0,-length/2+beam,beam/2]) rotate([0,90,0]) cylinder(r=beam, h=bracket_thick, center=true);
+        }
+        
+        rods_and_rails(solid = 0);
+        
+        //cut out the rear beam
+        translate([0,-length/2-beam/2,0]) cube([length, beam, beam*3], center=true);
+        
+        //mounting holes
+        translate([length/2-beam-bracket_thick/2,0,0]) {
+            for(i=[1,3,5]) 
+                translate([0,-length/2+beam*i,beam]) rotate([0,90,0]) cylinder(r=m5_rad, h=bracket_thick*3, center=true);
+            for(i=[2,4]) 
+                translate([0,-length/2+beam*i,0]) rotate([0,90,0]) cylinder(r=m5_rad, h=bracket_thick*3, center=true);
+        }
+    }
+}
+
+module spacer_plate_idler(){
+    mirror([1,0,0])
+    difference(){
+        translate([length/2-beam-bracket_thick/2,0,0])
+        hull(){
+            translate([0,-length/2,beam*2]) rotate([0,90,0]) cylinder(r=beam, h=bracket_thick, center=true);
+            translate(roller_offset_rear) rotate([0,90,0]) cylinder(r=beam, h=bracket_thick, center=true);
+            //x motor
+            translate(x_motor_offset) rotate([0,90,0]) cylinder(r=motor_r/2, h=bracket_thick, center=true);
+            
+            translate(x_motor_offset+[0,beam*2,beam/3]) rotate([0,90,0]) cylinder(r=motor_r/2, h=bracket_thick, center=true);
+            
+            //screwhole meat
+            translate([0,-length/2+beam*5,beam/2]) rotate([0,90,0]) cylinder(r=beam, h=bracket_thick, center=true);
+            translate([0,-length/2+beam,beam/2]) rotate([0,90,0]) cylinder(r=beam, h=bracket_thick, center=true);
+        }
+        
+        rods_and_rails(solid = 0);
+        
+        //cut out the rear beam
+        translate([0,-length/2-beam/2,0]) cube([length, beam, beam*3], center=true);
+        
+        //mounting holes
+        translate([length/2-beam-bracket_thick/2,0,0]) {
+            for(i=[1,3,5]) 
+                translate([0,-length/2+beam*i,beam]) rotate([0,90,0]) cylinder(r=m5_rad, h=bracket_thick*3, center=true);
+            for(i=[2,4]) 
+                translate([0,-length/2+beam*i,0]) rotate([0,90,0]) cylinder(r=m5_rad, h=bracket_thick*3, center=true);
         }
     }
 }
@@ -198,8 +288,25 @@ module y_gantry(){
 
 ////Standard parts below :-)
 module linear_rail(carriage = true){
-    cube([linear_rail_width, linear_rail_height, length], center=true);
-    translate([0,linear_rail_carriage_offset,0]) cube([linear_rail_carriage_width, linear_rail_carriage_height, linear_rail_carriage_length], center=true);
+    linear_rail_carriage_screw_sep_w = 20;
+    linear_rail_carriage_screw_sep_l = 20;
+    linear_rail_screw_offset = 12.5;
+    linear_rail_screw_sep = 25;
+    
+    difference(){
+        cube([linear_rail_width, linear_rail_height, length], center=true);
+        for(i=[-length/2+linear_rail_screw_offset:linear_rail_screw_sep:length/2]) translate([0,0,i])
+            rotate([90,0,0]) cylinder(r=m3_rad, h=linear_rail_carriage_height*3, center=true);
+    }
+    
+    if(carriage == true){
+        translate([0,linear_rail_carriage_offset,0]) difference(){
+            cube([linear_rail_carriage_width, linear_rail_carriage_height, linear_rail_carriage_length], center=true);
+            for(i=[0,1]) for(j=[0,1]) mirror([i,0,0]) mirror([0,0,j]) translate([screw_sep_w/2, 0, screw_sep_l/2]) {
+                rotate([90,0,0]) cylinder(r=m3_rad, h=linear_rail_carriage_height*3, center=true);
+            }
+        }
+    }
 }
 
 module backlash_nut(){
