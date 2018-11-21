@@ -39,6 +39,10 @@ linear_rail_carriage_width = 27;
 linear_rail_carriage_height = 10;
 linear_rail_carriage_length = 34.7;
 linear_rail_carriage_offset = 3+(linear_rail_carriage_height-linear_rail_height)/2;
+linear_rail_carriage_screw_sep_w = 20;
+linear_rail_carriage_screw_sep_l = 20;
+linear_rail_screw_offset = 12.5;
+linear_rail_screw_sep = 25;
 
 back_flange_rad = 36.5/2;
 back_nut_rad = 20/2;
@@ -75,7 +79,10 @@ bed_offset_rear = -89;
 part = 100;
 
 if(part == 1){
-    spacer_plate_drive();
+    projection(){
+        rotate([0,90,0]) translate([-length/2+beam,0,beam/2+.1]) spacer_plate_drive();
+        rotate([0,-90,0]) translate([length/2-beam,0,beam/2+.1]) spacer_plate_idler();
+    }
 }
 
 if(part == 100){
@@ -138,7 +145,7 @@ module rods_and_rails(solid = 0){
         if(solid != 1) {
             //y rail
             translate([0,length/2-y_beam_inset,0]) rotate([90,0,0]) linear_rail();
-            translate([0,motor_w+37,0]) rotate([0,0,-90]) y_gantry();
+            %translate([0,motor_w+37,0]) rotate([0,0,-90]) y_gantry();
             
             translate(y_motor_offset) motor_holes();
         }
@@ -160,6 +167,10 @@ module rods_and_rails(solid = 0){
     echo(roller_offset_front - roller_offset_rear);
     echo("Belt Length = ");
     echo((roller_offset_front - roller_offset_rear)[1] * 2 + 2*3.14159*roller_rad);
+}
+
+module y_plate(){
+    
 }
 
 module spacer_plate_drive(){
@@ -288,11 +299,6 @@ module y_gantry(){
 
 ////Standard parts below :-)
 module linear_rail(carriage = true){
-    linear_rail_carriage_screw_sep_w = 20;
-    linear_rail_carriage_screw_sep_l = 20;
-    linear_rail_screw_offset = 12.5;
-    linear_rail_screw_sep = 25;
-    
     difference(){
         cube([linear_rail_width, linear_rail_height, length], center=true);
         for(i=[-length/2+linear_rail_screw_offset:linear_rail_screw_sep:length/2]) translate([0,0,i])
@@ -302,7 +308,7 @@ module linear_rail(carriage = true){
     if(carriage == true){
         translate([0,linear_rail_carriage_offset,0]) difference(){
             cube([linear_rail_carriage_width, linear_rail_carriage_height, linear_rail_carriage_length], center=true);
-            for(i=[0,1]) for(j=[0,1]) mirror([i,0,0]) mirror([0,0,j]) translate([screw_sep_w/2, 0, screw_sep_l/2]) {
+            for(i=[0,1]) for(j=[0,1]) mirror([i,0,0]) mirror([0,0,j]) translate([linear_rail_carriage_screw_sep_w/2, 0, linear_rail_carriage_screw_sep_l/2]) {
                 rotate([90,0,0]) cylinder(r=m3_rad, h=linear_rail_carriage_height*3, center=true);
             }
         }
