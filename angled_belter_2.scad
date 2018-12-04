@@ -79,7 +79,7 @@ extruder_offset = y_beam_offset - [0,motor_w*1.5,motor_w/2];
 
 
 
-part = 1;
+part = 100;
 
 if(part == 1){
     projection(){
