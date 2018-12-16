@@ -1,9 +1,18 @@
-in = 25.4;
+include <configuration.scad>
 
 //%extrusion();
 
 $fn=72;
-translate([20,0,0]) rotate([0,90,0]) rod_mount(rod_rad = 5.25, extrusion=true);
+
+part = 2;
+
+if(part == 1){
+    rotate([0,90,0]) rod_mount(rod_rad = 5.25, extrusion=true);
+}
+
+if(part == 2){
+    tensioner();
+}
 
 //exit_ramp();
 
@@ -14,6 +23,8 @@ screw_rad = 1.8;
 nut_rad = 6.25/2;
 wall = 3;
 roller_rad = 43/2+1;
+
+slot_width = 1;
 
 $fn=36;
 
@@ -97,6 +108,52 @@ module fan_mount(){
     }
 }
 
+
+module tensioner(){
+    width = 17;
+    screw_rad = 4.9/2;
+    height = 17;
+    
+    gnurled_base_rad = 9.5/2;
+    gnurled_cap_rad = 9.5/2;
+    
+    
+    difference(){
+        union(){
+            hull(){
+                translate([0,0,wall]) for(i=[0,1]) mirror([i,0,0]) translate([width/2,0,0]) hull(){
+                    cylinder(r=beam/2, h=wall, center=true);
+                    cylinder(r=beam/2-wall/2, h=wall*2, center=true);
+                }
+                
+                translate([0,-beam/2+wall,height]) rotate([90,0,0])
+                    cylinder(r=screw_rad+wall, h=wall*2, center=true);
+            }
+            
+            //gnurled nut platen
+            translate([0,-beam/2+wall*1.5,height]) rotate([90,0,0])
+                cylinder(r2=screw_rad+wall, r1=gnurled_base_rad, h=wall*3, center=true);
+        }
+        
+        //base screwholes
+        for(i=[0,1]) mirror([i,0,0]) translate([width/2,0,0]) {
+            cylinder(r=m5_rad, h=wall*11, center=true);
+            translate([0,0,wall]) cylinder(r=m5_cap_rad, h=wall*7);
+        }
+        
+        //gnurled nut platen
+        translate([0,-beam/2+wall*4.5,height]) rotate([90,0,0]){
+            cylinder(r1=gnurled_cap_rad+wall, r2=gnurled_cap_rad, h=wall*3, center=true);
+            rotate([0,0,90]) cap_cylinder(r=screw_rad, h=50, center=true);
+        }
+        
+        //cut off the sides
+        for(i=[0,1]) mirror([i,0,0]) translate([width/2+50+m5_cap_rad+wall/2,0,0]) {
+            cube([100,100,100], center=true);
+        }
+    }
+}
+
 module rod_mount(extrusion=false, width=30){
     screw_sep = 15;
     beam = 20;
@@ -177,7 +234,7 @@ module extrusion_lug(length = in){
                 }
             }
         }
-        extrusion(slop = .25);
+        extrusion(slop = .5);
     }
 }
 
