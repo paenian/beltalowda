@@ -38,7 +38,7 @@ motor_screw_sep = 31;
 m3_nut_rad = 6.01/2+slop;
 m3_nut_height = 2.4;
 m3_rad = 3/2+slop;
-m3_cap_rad = 3.25;
+m3_cap_rad = 3.5;
 m3_cap_height = 2;
 m3_sq_nut_rad = 7.9/2;
 
