@@ -65,9 +65,10 @@ x_motor_offset = x_rail_offset_rear+[0,motor_w/2+linear_rail_width+wall/2,beam*1
 
 y_beam_offset = x_motor_offset + [0,motor_w/2, motor_w/2];
 y_beam_inset = 9;
-y_motor_offset = [-motor_w/2-linear_rail_width/2, motor_w/2, 0];
+y_motor_offset = [-motor_w/2-beam/2, motor_w/2, 0];
+y_pulley_offset = y_motor_offset[0];
 //The Motor is dependent on the beam - this is an offset from the beam.
-y_bracket_hole_lift = linear_rail_carriage_height+11.5;
+y_bracket_hole_lift = linear_rail_carriage_height+13;
 
 bed_height = roller_rad+roller_rod_rad+3;
 bed_height = beam*2;
@@ -75,11 +76,7 @@ bed_offset_rear = -89;
 
 extruder_offset = y_beam_offset - [0,motor_w*1.5,motor_w/2];
 
-
-
-
-
-part = 100;
+part = 8;
 
 if(part == 1){
     projection(){
@@ -90,8 +87,8 @@ if(part == 1){
 
 if(part == 2){
     projection(){
-        rotate([0,90,0]) translate([-length/2+beam,0,beam/2+.1]) y_plate(front = false);
-        rotate([0,-90,0]) translate([length/2-beam,0,beam/2+.1]) y_plate(front = true);
+        rotate([0,90,0]) translate([-length/2+beam,0,-35]) y_plate(front = false);
+        rotate([0,-90,0]) translate([length/2-beam,0,-35]) y_plate(front = true);
     }
 }
 
@@ -101,6 +98,22 @@ if(part == 3){
 
 if(part == 4){
     y_plate();
+}
+
+if(part == 5){
+    y_plate_bracket(shift = 0);
+}
+
+if(part == 6){
+    y_plate_bracket(shift = 1);
+}
+
+if(part == 7){
+    y_gantry();
+}
+
+if(part == 8){
+    y_tensioner();
 }
 
 if(part == 100){
@@ -189,25 +202,139 @@ module rods_and_rails(solid = 0, z_rollers=true, draw_y_beam = true){
     echo((roller_offset_front - roller_offset_rear)[1] * 2 + 2*3.14159*roller_rad);
 }
 
+
+//this goes on the end of the Y axis and tensions the belt.
+module y_tensioner(length = 37){
+    min_rad = wall/2;
+    rotate([180,0,0]) 
+    difference(){
+        union(){
+            minkowski(){
+                cube([linear_rail_width+wall, linear_rail_height+wall, length+wall], center=true);
+                sphere(r=min_rad, $fn=6);
+            }
+            
+            //belt pulley mount
+            translate([y_pulley_offset,0,length/2-wall]) rotate([90,0,0]) {
+                translate([0,0,linear_rail_height/2]) cylinder(r1=linear_rail_width/2+wall, r2=m5_rad+1, h=wall);
+                hull(){
+                    cylinder(r=linear_rail_width/2+wall, h=linear_rail_height+wall/2, center=true);
+                    cylinder(r=linear_rail_width/2+wall/2, h=linear_rail_height+wall, center=true);
+                    
+                    translate([-y_pulley_offset,-length+linear_rail_width/2+wall,0]) {
+                        cylinder(r=linear_rail_width/2+wall, h=linear_rail_height+wall/2, center=true);
+                        cylinder(r=linear_rail_width/2+wall/2, h=linear_rail_height+wall, center=true);
+                    }
+                }
+            }
+        }
+        
+        //rail cutout
+        translate([0,0,-wall]) cube([linear_rail_width+slop*4, linear_rail_height+slop*4, length], center=true);
+        
+        //tensioner
+        translate([0,0,length/2+wall]){
+            translate([0,0,-wall*2+m5_nut_height+1+.25]) cylinder(r=m5_rad, h=length, center=true);
+            
+            translate([0,0,-wall*2]){
+                cylinder(r1=m5_nut_rad+.25, r2=m5_nut_rad, h=m5_nut_height+1, $fn=6);
+            
+                //place to insert the nut
+                hull(){
+                    translate([0,0,-length-wall]) cylinder(r=m5_nut_rad+1, h=.1, $fn=6);
+                    cylinder(r1=m5_nut_rad+.25, r2=m5_nut_rad, h=.1, $fn=6);
+                }
+            }
+        }
+        
+        //belt nut and shaft
+        translate([y_pulley_offset,-linear_rail_height/2+wall*2,length/2-wall]) rotate([90,0,0]){
+            cylinder(r1=m5_nut_rad+.25, r2=m5_nut_rad, h=m5_nut_height+1, $fn=6);
+            
+            //place to insert the nut
+            hull(){
+                translate([0,0,-linear_rail_height-wall]) rotate([0,0,180]) cap_cylinder(r=m5_nut_rad+1, h=.1);
+                cylinder(r1=m5_nut_rad+.25, r2=m5_nut_rad, h=.1, $fn=6);
+            }
+            
+            //shaft
+            cap_cylinder(r=m5_rad, h=50, center=true);
+        }
+        
+        //extra flat bottom
+        translate([0,0,50+length/2+wall-1]) cube([100,100,100], center=true);
+    }
+}
+
+
+module y_plate_bracket(shift = 1){
+    
+    hole_lift = 5;
+    
+    %render() y_plate();
+    %render() rods_and_rails(solid = 0, z_rollers = false);
+    translate(x_rail_offset_rear+[0,0,beam*1.5+linear_rail_height/2]) rotate([0,90,0]) rotate([0,0,90]) translate([0,14,13]) difference(){
+        hull(){
+            for(i=[0,1]) mirror([i,0,0]) translate([linear_rail_carriage_screw_sep_w/2,0,0]) rotate([90,0,0]) {
+                cylinder(r=wall, h=wall);
+                translate([0,-1.5*wall,0]) cylinder(r=wall, h=wall);
+            }
+                
+            for(i=[-1,0,1]) translate([(i+shift)*linear_rail_screw_sep/2,hole_lift,-14]) rotate([0,0,0]) cylinder(r=wall, h=wall);
+            
+            if(shift == 1){
+                translate([.8*linear_rail_carriage_screw_sep_w,0,0]) rotate([90,0,0]) {
+                    cylinder(r=wall, h=wall);
+                    translate([0,-1.5*wall,0]) cylinder(r=wall, h=wall);
+                }
+                
+                translate([2*linear_rail_screw_sep/2,hole_lift,-14]) rotate([0,0,0]) cylinder(r=wall, h=wall);
+            }
+        }
+        for(i=[0,1]) mirror([i,0,0]) translate([linear_rail_carriage_screw_sep_w/2,0,0]) rotate([-90,0,0]) {
+            cylinder(r=m3_rad, h=wall*6, center=true);
+            translate([0,0,-.5]) cylinder(r=m3_cap_rad, h=wall*6);
+        }
+        
+        for(i=[-1,0,1]) translate([(i+shift)*linear_rail_screw_sep/2,hole_lift,-14]) rotate([0,0,0]) {
+            cylinder(r=m3_rad, h=wall*6, center=true);
+            hull(){
+                translate([0,0,wall-.5]) cylinder(r=m3_cap_rad, h=wall*6);
+                translate([0,wall,wall-.5]) cylinder(r=m3_cap_rad, h=wall*6);
+            }
+        }
+    }
+}
+
+
 module y_plate(front = false){
-    rad = 23;
+    rad = 29;
     difference(){
         union(){
             hull(){
-                translate(x_rail_offset_rear+[0,0,beam*1.5+linear_rail_height/2+rad]) rotate([0,90,0]) cylinder(r=rad, h=bracket_thick, center=true);
+                translate(x_rail_offset_rear+[0,5,beam*1.5+linear_rail_height/2+rad]) rotate([0,90,0]) cylinder(r=rad, h=bracket_thick, center=true);
                 translate(x_rail_offset_front+[0,0,beam*1.5+linear_rail_height/2]) rotate([angle,0,0]) translate([0,0,rad]) rotate([0,90,0]) cylinder(r=rad, h=bracket_thick, center=true);
                     
 
-                translate(y_beam_offset) rotate([0,90,0]) rotate([0,0,angle]) translate(y_motor_offset) motor_body(extra=1, height=bracket_thick);
+                translate(y_beam_offset) rotate([0,90,0]) rotate([0,0,angle]) translate(y_motor_offset) motor_body(extra=bracket_thick, thick=bracket_thick);
                 
-                translate(extruder_offset) rotate([0,90,0]) rotate([0,0,angle]) translate(y_motor_offset) motor_body(extra=1, height=bracket_thick);
+                translate(extruder_offset) rotate([0,90,0]) rotate([0,0,angle]) translate(y_motor_offset) motor_body(extra=bracket_thick, thick=bracket_thick);
             }
         }
         
         translate([0,-beam/2+12.5-length,beam*1.5+y_bracket_hole_lift]) rotate([0,0,90]) rotate([0,90,0]) linear_rail(solid = 0, beam = false);
         
         rods_and_rails(solid = 0, z_rollers = false, draw_y_beam = front);
-        translate(extruder_offset) rotate([0,90,0]) rotate([0,0,angle]) translate(y_motor_offset) motor_holes();
+        
+        if(front == true){
+            translate(y_beam_offset) rotate([0,90,0]) rotate([0,0,angle]) translate(y_motor_offset) motor_holes();
+        
+            translate(extruder_offset) rotate([0,90,0]) rotate([0,0,angle]) translate(y_motor_offset) motor_holes();
+        }else{
+            translate(y_beam_offset) rotate([0,90,0]) rotate([0,0,angle]) translate(y_motor_offset) motor_body(extra=.25, thick=bracket_thick*3);
+        
+            translate(extruder_offset) rotate([0,90,0]) rotate([0,0,angle]) translate(y_motor_offset) motor_body(extra=.25, thick=bracket_thick*3);
+        }
     }
 }
 
@@ -286,7 +413,6 @@ module y_gantry(){
     hotend_y_offset = -5;
     pulley_rad = 6;
     
-    
     difference(){
         union(){
             //body
@@ -295,9 +421,13 @@ module y_gantry(){
                 cylinder(r=hole_rad+wall/2,h=bracket_thick, center=true);
             }
             //belt mount
-            mirror([0,1,0]) translate([0,pulley_rad+1,bracket_thick]) hull(){
+            mirror([0,0,0]) translate([0,y_pulley_offset+pulley_rad+1,bracket_thick]) hull(){
                 cube([hole_sep_x+wall*2,wall,7],center=true);
-                translate([0,0,-bracket_thick]) cube([hole_sep_x+hole_rad*2+wall*2,wall,1],center=true);
+                translate([0,wall,-bracket_thick]) cube([hole_sep_x+hole_rad*2+wall,wall*4,bracket_thick],center=true);
+                translate([0,wall,-bracket_thick*1.25+chamfer]) cube([hole_sep_x+hole_rad*2+wall*2,wall*3,bracket_thick/2],center=true);
+                
+                translate([0,0,-bracket_thick*1.25+chamfer]) cube([hole_sep_x+hole_rad*2+wall*3,wall*1,bracket_thick/2],center=true);
+                
                 translate([0,wall,-bracket_thick]) cube([hole_sep_x+hole_rad*2+wall,wall,1],center=true);
             }
             
@@ -307,31 +437,30 @@ module y_gantry(){
         
         //gantry attach holes
         for(i=[0,1]) for(j=[0,1]) mirror([i,0,0]) mirror([0,j,0]) translate([hole_sep_x/2, hole_sep_y/2, 0]){
-            cylinder(r1=hole_cap_rad, r2=hole_cap_rad-3, h=bracket_thick*3);
+            cylinder(r1=hole_cap_rad, r2=hole_cap_rad-1.5, h=bracket_thick*3);
             cylinder(r=hole_rad,h=bracket_thick*6, center=true);
         }
         
-        //belt passthrough
-        for(i=[0]) mirror([0,i,0]) translate([0,pulley_rad+1,bracket_thick]) hull(){
-            cube([100,3,8],center=true);
-            translate([0,5,5]) cube([100,3,8],center=true);
-        }
-        
         //belt grip
-        for(i=[1]) mirror([0,i,0]) translate([0,pulley_rad+1,bracket_thick]){
+        for(i=[1]) translate([0,y_pulley_offset+pulley_rad+1,-.1]){
             difference(){
-                translate([0,0,4]) cube([100,2.25,8+8],center=true);
+                translate([0,0,0]) cube([100,2.25,bracket_thick+wall/2],center=true);
                 
-                for(i=[-15:2:15]) hull(){
+                for(i=[-19:2:19]) hull(){
                     translate([i,-1,-1]) cube([1,2,8], center=true);
                     translate([i,-1.5,-.5]) cube([1,2,8], center=true);
                 }
             }
         }
         
+        //zip ties to clamp the belts on
+        for(i=[0,1]) mirror([i,0,0]) translate([hole_sep_x/2+3.5,y_pulley_offset+4.5,4.5]) rotate([0,90,0]) rotate_extrude(){
+            translate([9,0,0]) square([2,4], center=true);
+        }
+        
         //hotend clamp holes
         //hotend clamp mount
-            translate([0,hotend_y_offset,hotend_extend]) rotate([-90,0,0]) groovemount_screw(height = hotend_extend, solid=0);
+        translate([0,hotend_y_offset,hotend_extend]) rotate([-90,0,0]) groovemount_screw(height = hotend_extend, solid=0);
     }
 }
 
@@ -405,14 +534,14 @@ module groovemount_screw(solid=1,e3d=1, height = 19){
         //screwmount
         translate([0,0,-inset+4.25+6/2-slop]){
             for(i=[0,1]) mirror([i,0,0]) translate([screw_mount_screw_sep/2,7,0]) rotate([90,0,0]) {
-                translate([0,0,-wall+m3_nut_height/2+.5+.3]) rotate([0,0,180]) cap_cylinder(r=m3_rad, h=25);
-                translate([0,0,-28+-wall+m3_nut_height/2+.5+.3]) rotate([0,0,180]) cap_cylinder(r=m3_rad, h=25);
+                translate([0,0,-wall/2+m3_nut_height/2+.5+.3]) rotate([0,0,180]) cap_cylinder(r=m3_rad, h=25);
+                translate([0,0,-28+-wall/2+m3_nut_height/2+.5+.3]) rotate([0,0,180]) cap_cylinder(r=m3_rad, h=25);
                 
                 //nuts
-                translate([0,0,-wall]) rotate([0,0,45]) cylinder(r2=m3_sq_nut_rad, r1=m3_sq_nut_rad+1, h=m3_nut_height+1, center=true, $fn=4);
+                translate([0,0,-wall/2]) rotate([0,0,45]) cylinder(r2=m3_sq_nut_rad, r1=m3_sq_nut_rad+.5, h=m3_nut_height+1, center=true, $fn=4);
                 hull(){
-                    translate([0,m3_sq_nut_rad/2,-wall]) rotate([0,0,45]) cylinder(r2=m3_sq_nut_rad, r1=m3_sq_nut_rad+1, h=m3_nut_height+1, center=true, $fn=4);
-                    translate([0,m3_sq_nut_rad*2,-wall]) rotate([0,0,45]) cylinder(r2=m3_sq_nut_rad+.5, r1=m3_sq_nut_rad+1.5, h=m3_nut_height+1, center=true, $fn=4);
+                    translate([0,-m3_sq_nut_rad*.8,-wall/2]) rotate([0,0,45]) cylinder(r2=m3_sq_nut_rad, r1=m3_sq_nut_rad+.5, h=m3_nut_height+1, center=true, $fn=4);
+                    translate([0,-m3_sq_nut_rad*2,-wall/2]) rotate([0,0,45]) cylinder(r2=m3_sq_nut_rad+.25, r1=m3_sq_nut_rad+.75, h=m3_nut_height+1, center=true, $fn=4);
                 }
                 
                 %translate([0,0,+2]) cylinder(r=m3_rad, h=25.4*3/4);
