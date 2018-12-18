@@ -76,7 +76,7 @@ bed_offset_rear = -89;
 
 extruder_offset = y_beam_offset - [0,motor_w*1.5,motor_w/2];
 
-part = 2;
+part = 7;
 
 if(part == 1){
     projection(){
@@ -552,7 +552,7 @@ module groovemount_screw(solid=1,e3d=1, height = 19, nuts = true){
             //screwmount mount
             translate([0,0,-inset+4.25+6/2-slop]) hull(){
                 for(i=[0,1]) mirror([i,0,0]) translate([screw_mount_screw_sep/2,7,0]) rotate([90,0,0]){
-                    cylinder(r=screw_mount_rad, h=height, center=true);
+                    translate([0,0,2]) cylinder(r=screw_mount_rad, h=height+4, center=true);
                     translate([0,base_rad-screw_mount_rad,-height/2]) cylinder(r=base_rad, h=1, center=true);
                 }
             }
