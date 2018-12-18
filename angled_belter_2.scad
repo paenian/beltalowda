@@ -76,7 +76,7 @@ bed_offset_rear = -89;
 
 extruder_offset = y_beam_offset - [0,motor_w*1.5,motor_w/2];
 
-part = 9;
+part = 2;
 
 if(part == 1){
     projection(){
@@ -353,15 +353,15 @@ module y_plate(front = false){
         
         rods_and_rails(solid = 0, z_rollers = false, draw_y_beam = front);
         
-        if(front == true){
+        //if(front == true){
             translate(y_beam_offset) rotate([0,90,0]) rotate([0,0,angle]) translate(y_motor_offset) motor_holes();
         
             translate(extruder_offset) rotate([0,90,0]) rotate([0,0,angle]) translate(y_motor_offset) motor_holes();
-        }else{
-            translate(y_beam_offset) rotate([0,90,0]) rotate([0,0,angle]) translate(y_motor_offset) motor_body(extra=.25, thick=bracket_thick*3);
+        //}else{
+            //translate(y_beam_offset) rotate([0,90,0]) rotate([0,0,angle]) translate(y_motor_offset) motor_body(extra=.25, thick=bracket_thick*3);
         
-            translate(extruder_offset) rotate([0,90,0]) rotate([0,0,angle]) translate(y_motor_offset) motor_body(extra=.25, thick=bracket_thick*3);
-        }
+            //translate(extruder_offset) rotate([0,90,0]) rotate([0,0,angle]) translate(y_motor_offset) motor_body(extra=.25, thick=bracket_thick*3);
+        //}
     }
 }
 
