@@ -32,18 +32,6 @@ circular_pitch = 360*distance_between_axles/(small_teeth+big_teeth);
 bracket_thick = 6;
 chamfer = 1.5;
 
-//x axis variables
-linear_rail_width = 12;
-linear_rail_height = 8;
-linear_rail_carriage_width = 27;
-linear_rail_carriage_height = 10;
-linear_rail_carriage_length = 34.7;
-linear_rail_carriage_offset = 3+(linear_rail_carriage_height-linear_rail_height)/2;
-linear_rail_carriage_screw_sep_w = 20;
-linear_rail_carriage_screw_sep_l = 20;
-linear_rail_screw_offset = 12.5;
-linear_rail_screw_sep = 25;
-
 back_flange_rad = 36.5/2;
 back_nut_rad = 20/2;
 back_screw_sep = 26.4;

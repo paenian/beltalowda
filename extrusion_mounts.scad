@@ -4,7 +4,7 @@ include <configuration.scad>
 
 $fn=72;
 
-part = 2;
+part = 3;
 
 if(part == 1){
     rotate([0,90,0]) rod_mount(rod_rad = 5.25, extrusion=true);
@@ -12,6 +12,10 @@ if(part == 1){
 
 if(part == 2){
     tensioner();
+}
+
+if(part == 3){
+    projection() spacer();
 }
 
 //exit_ramp();
@@ -27,6 +31,13 @@ roller_rad = 43/2+1;
 slot_width = 1;
 
 $fn=36;
+
+module spacer(){
+    difference(){
+        cylinder(r=beam/2/cos(180/8), h=wall, $fn=8);
+        cylinder(r=m3_rad, h=wall*5, center=true);
+    }
+}
 
 module t_nut_m5(){
     length = 17;

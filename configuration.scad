@@ -71,6 +71,18 @@ ten24_sq_nut_rad_laser = ten24_sq_nut_rad+laser_slop/2;
 ten24_sq_nut_flat = 9.5;
 ten24_sq_nut_flat_laser = ten24_sq_nut_flat+laser_slop;
 
+//x axis variables
+linear_rail_width = 12;
+linear_rail_height = 8;
+linear_rail_carriage_width = 27;
+linear_rail_carriage_height = 10;
+linear_rail_carriage_length = 34.7;
+linear_rail_carriage_offset = 3+(linear_rail_carriage_height-linear_rail_height)/2;
+linear_rail_carriage_screw_sep_w = 20;
+linear_rail_carriage_screw_sep_l = 20;
+linear_rail_screw_offset = 12.5;
+linear_rail_screw_sep = 25;
+
 
 //makes all the holes have lots of segments
 $fs=.5;
