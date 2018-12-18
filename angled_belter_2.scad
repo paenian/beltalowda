@@ -68,7 +68,7 @@ y_beam_inset = 9;
 y_motor_offset = [-motor_w/2-beam/2, motor_w/2, 0];
 y_pulley_offset = y_motor_offset[0];
 //The Motor is dependent on the beam - this is an offset from the beam.
-y_bracket_hole_lift = linear_rail_carriage_height+13;
+y_bracket_hole_lift = linear_rail_carriage_height+14;
 
 bed_height = roller_rad+roller_rod_rad+3;
 bed_height = beam*2;
@@ -296,7 +296,7 @@ module bed_plate(){
 }
 
 module y_plate_bracket(shift = 1){
-    hole_lift = 5;
+    hole_lift = 6;
     
     %render() y_plate();
     %render() rods_and_rails(solid = 0, z_rollers = false);
