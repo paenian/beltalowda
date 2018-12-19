@@ -2,10 +2,16 @@
 
 # STLs first
 # plates
-openscad -o stls/corner_bracket_pair.stl -D part=1 angled_belter.scad &
-openscad -o stls/spacer_plates.stl -D part=2 angled_belter.scad &
-openscad -o stls/y_plate.stl -D part=3 angled_belter.scad &
-openscad -o stls/y_front_plate.stl -D part=33 angled_belter.scad &
+openscad -o dxfs/spacer_plates.dxf -D part=1 angled_belter_2.scad &
+openscad -o dxfs/y_plates.dxf -D part=2 angled_belter_2.scad &
+openscad -o dxfs/bed_plates.dxf -D part=3 angled_belter_2.scad &
+
+# y axis
+openscad -o stls/y_bracket.stl -D part=5 angled_belter_2.scad &
+openscad -o stls/y_bracket_shifted.stl -D part=6 angled_belter_2.scad &
+openscad -o stls/y_gantry.stl -D part=7 angled_belter_2.scad &
+
+
 
 
 # rollers

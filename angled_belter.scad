@@ -58,7 +58,7 @@ bed_lift = roller_rod_rad+roller_rad; //in*1/16; //put a little insulation under
 
 chamfer = 1.5;
 
-part = 11;
+part = 5;
 mirror = 0;
 
 if(part == 1){
@@ -707,7 +707,7 @@ module roller_drive_mount(wall = 3){
     
     gear_chamfer_radius = (outer_radius - radius) / tan(45);
     
-    lift = gear_thick+5;
+    lift = gear_thick+1;
     
     difference(){
         union(){

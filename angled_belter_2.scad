@@ -56,7 +56,7 @@ y_beam_inset = 9;
 y_motor_offset = [-motor_w/2-beam/2, motor_w/2, 0];
 y_pulley_offset = y_motor_offset[0];
 //The Motor is dependent on the beam - this is an offset from the beam.
-y_bracket_hole_lift = linear_rail_carriage_height+14;
+y_bracket_hole_lift = linear_rail_carriage_height+14.5;
 
 bed_height = roller_rad+roller_rod_rad+3;
 bed_height = beam*2;
@@ -64,7 +64,7 @@ bed_offset_rear = -89;
 
 extruder_offset = y_beam_offset - [0,motor_w*1.5,motor_w/2];
 
-part = 7;
+part = 5;
 
 if(part == 1){
     projection(){
@@ -85,14 +85,6 @@ if(part == 9){
         translate([beam*3,0,0]) bed_plate();
         translate([-beam*3,0,0]) bed_plate();
     }
-}
-
-if(part == 3){
-    y_bracket();
-}
-
-if(part == 4){
-    y_plate();
 }
 
 if(part == 5){
@@ -284,7 +276,7 @@ module bed_plate(){
 }
 
 module y_plate_bracket(shift = 1){
-    hole_lift = 6;
+    hole_lift = 6.5;
     
     %render() y_plate();
     %render() rods_and_rails(solid = 0, z_rollers = false);
@@ -337,7 +329,8 @@ module y_plate(front = false){
             }
         }
         
-        translate([0,-beam/2+12.5-length,beam*1.5+y_bracket_hole_lift]) rotate([0,0,90]) rotate([0,90,0]) linear_rail(solid = 0, beam = false);
+        //rear attachment to x rail
+        #translate([0,-beam/2+12.5-length,beam*1.5+y_bracket_hole_lift]) rotate([0,0,90]) rotate([0,90,0]) linear_rail(solid = 0, beam = false);        
         
         rods_and_rails(solid = 0, z_rollers = false, draw_y_beam = front);
         
@@ -490,7 +483,7 @@ module linear_rail(carriage = true, solid = 1, beam = true){
     
     if(solid == 0){
         for(i=[-length/2+linear_rail_screw_offset:linear_rail_screw_sep/2:length/2]) translate([0,0,i])
-            rotate([90,0,0]) cylinder(r=m3_rad+.01, h=linear_rail_carriage_height*3, center=true);
+            #rotate([90,0,0]) cylinder(r=m3_rad+.01, h=linear_rail_carriage_height*3, center=true);
     }
     
     if(carriage == true){
