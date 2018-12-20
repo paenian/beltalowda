@@ -64,7 +64,7 @@ bed_offset_rear = -89;
 
 extruder_offset = y_beam_offset - [0,motor_w*1.5,motor_w/2];
 
-part = 5;
+part = 9;
 
 if(part == 1){
     projection(){
@@ -82,8 +82,8 @@ if(part == 2){
 
 if(part == 9){
     projection(){
-        translate([beam*3,0,0]) bed_plate();
-        translate([-beam*3,0,0]) bed_plate();
+        translate([beam*3.1,0,0]) bed_plate();
+        translate([-beam*3.1,0,0]) bed_plate();
     }
 }
 
@@ -257,14 +257,14 @@ module y_tensioner(length = 37){
 module bed_plate(){
     difference(){
         hull(){
-            for(i=[-2:1:2]){
+            for(i=[-3:1:2]){
                 for(j=[-1,1]){
                     translate([beam*i, beam*j, 0]) cylinder(r=beam/2, h=bracket_thick, center=true);
                 }
             }
         }
         
-        for(i=[-2:1:2]){
+        for(i=[-3:1:2]){
             for(j=[-1,1]){
                 translate([beam*i, beam*j, 0]) {
                     cylinder(r=m5_rad-.125, h=bracket_thick+1, center=true);
