@@ -15,19 +15,27 @@ layer_height=.2;
 pulley_rad = 13/2;
 pulley_flange_rad = 18/2;
 
-//robotdigg V-wheels - gotta update
-wheel_rad = 15.5/2;
-wheel_inner_rad = 12.5/2;
-wheel_clearance = 18;
-wheel_height = 9;
-wheel_inner_height = 5;
-wheel_flange_rad = 16/2;
+//bed thicknesses
+bed_inset = 4;
+bed_thick = 2.3;
+heater_thick = 2.2;
+insulation_thick = .1;
+bed_lift = heater_thick+insulation_thick;
 
 eccentric_rad = 7.3/2;
 eccentric_flange_rad = 11/2;
 
 belt_thick = 9;
 belt_width = 1.5;
+
+//belt drive variables
+small_teeth = 13;
+motor_shaft_rad = 5/2+.2;
+big_teeth = 41;
+gear_thick = 13;
+distance_between_axles = 37;
+circular_pitch = 360*distance_between_axles/(small_teeth+big_teeth);
+
 
 //motor size and placement variables
 motor_w = 42;
@@ -37,7 +45,7 @@ motor_screw_sep = 31;
 //standard screw variables
 m3_nut_rad = 6.01/2+slop;
 m3_nut_height = 2.4;
-m3_rad = 3/2+slop;
+m3_rad = 3.1/2+slop;
 m3_cap_rad = 3.5;
 m3_cap_height = 2;
 m3_sq_nut_rad = 7.9/2;

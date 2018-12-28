@@ -11,13 +11,12 @@ roller_rod_rad = 5;
 roller_drop = 1;
 roller_len = in*14;
 roller_span = 340;
-roller_inside_rad = 2.075/2*in-.05;
+roller_inside_rad = 2.075/2*in-.075;
 
 //roller bearings - 10mm rods right now.
-bearing_rad = 26/2+.125;
+bearing_rad = 26/2+.15;
 //bearing_rad = 32/2+.125;    //switch everything to 12mm rods?  Or keep the rollers on 10mm?
 bearing_thick = 8;
-bearing_thick = 10;
 bearing_inset = in;
 
 //roller drive variables
@@ -64,7 +63,7 @@ bed_offset_rear = -89;
 
 extruder_offset = y_beam_offset - [0,motor_w*1.5,motor_w/2];
 
-part = 9;
+part = 20;
 
 if(part == 1){
     projection(){
@@ -102,6 +101,26 @@ if(part == 7){
 
 if(part == 8){
     y_tensioner();
+}
+
+if(part == 10){
+    bed_clamp();
+}
+
+if(part == 11){
+    bed_center_support();
+}
+
+if(part == 20){
+    mirror([0,0,1]) roller_drive_mount();
+}
+
+if(part == 21){
+   mirror([0,0,1]) motor_drive_gear();
+}
+
+if(part == 22){
+    mirror([0,0,1]) roller_mount();
 }
 
 if(part == 100){
@@ -191,6 +210,86 @@ module rods_and_rails(solid = 0, z_rollers=true, draw_y_beam = true){
 }
 
 
+module motor_drive_gear(){
+    translate([distance_between_axles+1,0,0]) gear1(gear1_teeth = small_teeth, circular_pitch=circular_pitch, gear_height=gear_thick);
+}
+
+module roller_drive_mount(wall = 3){
+    %motor_drive_gear();
+    
+    radius = gear_radius(big_teeth, circular_pitch);
+    outer_radius = gear_outer_radius(big_teeth, circular_pitch);
+    
+    gear_chamfer_radius = (outer_radius - radius) / tan(45);
+    
+    lift = gear_thick+1;
+    
+    difference(){
+        union(){
+            
+            //roller mount
+            translate([0,0,lift-.05]) roller_mount();
+            //gear
+            chamfered_herring_gear(height=gear_thick, number_of_teeth=big_teeth, circular_pitch=circular_pitch, teeth_twist=-1);
+            //connect the two
+            translate([0,0,gear_thick-.05]) cylinder(r1=radius, r2=roller_inside_rad+wall, h=lift-gear_thick+.1);
+        }
+        
+        //hollow out a path upwards
+        translate([0,0,-.1]) cylinder(r1=bearing_rad+wall*3, r2=bearing_rad+wall*2, h=lift+1);
+        
+        //reopen the tightener holes for the set screws
+        translate([0,0,lift-.05]) for(i=[60:360/3:359]) rotate([0,0,i]) translate([0,0,wall*3]) {            
+            //access hole
+            rotate([0,0,0]) rotate([0,-90-13,0]) rotate([0,0,-90]) cap_cylinder(r=m5_rad+.5, h=50);
+        }
+    }
+}
+
+module roller_mount(wall=3){
+     difference(){
+        union(){
+            cylinder(r=roller_inside_rad+wall, h=wall+.1);
+            translate([0,0,wall]) cylinder(r1=roller_inside_rad+wall, r2=roller_inside_rad, h=wall+.1);
+            
+            translate([0,0,wall*2]) cylinder(r1=roller_inside_rad, r2=roller_inside_rad-slop, h=wall*2+.1);
+            translate([0,0,wall*4]) cylinder(r1=roller_inside_rad-slop, r2=bearing_rad+wall*3, h=wall*2+.1);
+            translate([0,0,wall*6]) cylinder(r1=bearing_rad+wall*3, r2=bearing_rad+wall*2, h=bearing_inset-wall*5);
+            
+            translate([0,0,bearing_inset-wall]) hull(){
+                cylinder(r=roller_inside_rad, h=wall*2, center=true);
+                cylinder(r=roller_inside_rad-wall/2, h=wall*4, center=true);
+            }
+        }
+        
+        //three set screws to lock the roller in place
+        for(i=[60:360/3:359]) rotate([0,0,i]) translate([0,0,wall*3]) {
+            //screw
+            rotate([0,90,0]) rotate([0,0,90]) cap_cylinder(r=m5_rad, h=50);
+            
+            //nut
+            rotate([0,90,0]) translate([0,0,roller_inside_rad-m5_nut_height]) cylinder(r=m5_sq_nut_rad, h=15, $fn=4);
+            
+            //access hole
+            rotate([0,0,0]) rotate([0,-90-13,0]) rotate([0,0,-90]) cap_cylinder(r=m5_rad+.5, h=50);
+        }
+        
+        //approach the bearing
+        translate([0,0,-.1]) cylinder(r1=bearing_rad+wall*2, r2=bearing_rad+wall, h=bearing_inset-bearing_thick+.2);
+        //mount the bearing
+        translate([0,0,-.1]) cylinder(r2=bearing_rad, r1=bearing_rad+slop/2, h=bearing_inset+.1);
+        //center through hole
+        translate([0,0,-.1]) cylinder(r=bearing_rad-wall, h=bearing_inset+.2+wall);
+        
+        //hold the bearing in place
+        for(i=[0:360/2:359]) rotate([0,0,i]) translate([bearing_rad+m3_rad+.6,0,0]) {
+            cylinder(r=m3_rad, h=bearing_inset+.2+wall);
+            cylinder(r=m3_cap_rad+1, h=bearing_inset-bearing_thick+.2);
+        }
+    }
+}
+
+
 //this goes on the end of the Y axis and tensions the belt.
 module y_tensioner(length = 37){
     min_rad = wall/2;
@@ -270,6 +369,62 @@ module bed_plate(){
                     cylinder(r=m5_rad-.125, h=bracket_thick+1, center=true);
                     cylinder(r=m5_cap_rad, h=bracket_thick+1);
                 }
+            }
+        }
+    }
+}
+
+module bed_clamp(){
+    difference(){
+        union(){
+            //mounting lugs
+            hull() for(i=[-beam, 0, beam]) translate([i,-beam/2,0]) {
+                cylinder(r=m5_cap_rad+wall-1, h=bracket_thick, center=true);
+                cylinder(r=m5_cap_rad+wall, h=bracket_thick/2, center=true);
+                translate([0,beam/2,0]) cylinder(r=m5_cap_rad+wall, h=bracket_thick, center=true);
+            }
+            
+            //bed seat
+            *translate([0,0,]) cube([beam*3,15,bed_lift], center=true);
+        }
+        
+        //screwholes
+        for(i=[-beam, 0, beam]) translate([i,-beam/2,0]){
+            cylinder(r=m5_rad, h=bracket_thick+1, center=true);
+            cylinder(r=m5_washer_rad+.25, h=bracket_thick);
+            translate([0,0,bracket_thick/2-1]) cylinder(r1=m5_washer_rad+.25, r2=m5_washer_rad+1, h=1.1);
+        }
+        
+        //bed seat
+        translate([0,m5_rad-beam/2+beam/2,bed_lift]) cube([beam*3.25,beam,bracket_thick], center=true);
+    }
+}
+
+module bed_center_support(){
+    slot = 2;
+    difference(){
+        union(){
+            //mounting lugs
+            hull() for(i=[-beam, 0, beam]) translate([i,-beam/2-slot,0]) {
+                cylinder(r=m5_cap_rad+wall-1, h=bracket_thick, center=true);
+                cylinder(r=m5_cap_rad+wall, h=bracket_thick/2, center=true);
+                translate([0,beam/2+slot-m5_cap_rad-wall+bed_lift,0]) cylinder(r=m5_cap_rad+wall, h=bracket_thick, center=true);
+            }
+        }
+        
+        //screwholes
+        for(i=[-beam, 0, beam]) translate([i,-beam/2,0]){
+            hull(){
+                cylinder(r=m5_rad, h=bracket_thick+1, center=true);
+                translate([0,-slot,0]) cylinder(r=m5_rad, h=bracket_thick+1, center=true);
+            }
+            hull(){
+                cylinder(r=m5_washer_rad+.25, h=bracket_thick);
+                translate([0,-slot,0]) cylinder(r=m5_washer_rad+.25, h=bracket_thick);
+            }
+            hull(){
+                translate([0,0,bracket_thick/2-1]) cylinder(r1=m5_washer_rad+.25, r2=m5_washer_rad+1, h=1.1);
+                translate([0,-slot,0]) translate([0,0,bracket_thick/2-1]) cylinder(r1=m5_washer_rad+.25, r2=m5_washer_rad+1, h=1.1);
             }
         }
     }

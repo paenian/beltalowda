@@ -17,13 +17,10 @@ openscad -o stls/y_tensioner.stl -D part=8 angled_belter.scad &
 openscad -o stls/x_tensioner.stl -D part=2 extrusion_mounts.scad &
 openscad -o stls/x_rod_slider.stl -D part=1 extrusion_mounts.scad &
 
-
-
-
 # rollers
-openscad -o stls/roller_mount.stl -D part=4 angled_belter.scad &
-openscad -o stls/roller_drive_mount.stl -D part=5 angled_belter.scad &
-openscad -o stls/roller_drive_gear.stl -D part=6 angled_belter.scad &
+openscad -o stls/roller_mount.stl -D part=22 angled_belter_2.scad &
+openscad -o stls/roller_drive_mount.stl -D part=20 angled_belter_2.scad &
+openscad -o stls/roller_drive_gear.stl -D part=21 angled_belter_2.scad &
 
 # extras
-openscad -o stls/rubber_foot.stl -D part=10 angled_belter.scad &
+openscad -o stls/rubber_foot.stl -D part=4 extrusion_mounts.scad &

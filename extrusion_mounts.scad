@@ -4,7 +4,7 @@ include <configuration.scad>
 
 $fn=72;
 
-part = 3;
+part = 4;
 
 if(part == 1){
     rotate([0,90,0]) rod_mount(rod_rad = 5.25, extrusion=true);
@@ -16,6 +16,10 @@ if(part == 2){
 
 if(part == 3){
     projection() spacer();
+}
+
+if(part == 4){
+    rotate([0,90,0]) corner_foot();
 }
 
 //exit_ramp();
@@ -31,6 +35,32 @@ roller_rad = 43/2+1;
 slot_width = 1;
 
 $fn=36;
+
+module corner_foot(height = 30){
+    difference(){
+        union(){
+            rotate([0,90,0]) rotate_extrude(){
+                translate([height,0,0]) scale([.5,1.1,1]) rotate([0,0,22.5]) circle(r=beam/2, $fn=8);
+            }
+            translate([0,0,0]) rotate([90,0,0]) scale([1.2,.25,1]) rotate([0,0,30]) cylinder(r=beam/2, h=height*2, center=true, $fn=6);
+        }
+        
+        //screwholes
+        for(i=[0,1]) mirror([0,i,0]) translate([0,height,0]) {
+            rotate([0,0,180]) cap_cylinder(r=m5_rad, h=100, center=true);
+            translate([0,0,-50-wall*2]) rotate([0,0,180]) cap_cylinder(r=m5_cap_rad, h=100, center=true);
+        }
+        
+        //clear out the top
+        translate([0,0,100+.75]) cube([200,200,200], center=true);
+        
+        //inset into the beam a little
+        translate([0,0,beam/2]) rotate([90,0,0]) extrusion(slop = .5);
+        
+        //flatten front/back
+        for(i=[0,1]) mirror([i,0,0]) translate([100+beam/2-.1,0,0]) cube([200,200,200], center=true);
+    }
+}
 
 module spacer(){
     difference(){
