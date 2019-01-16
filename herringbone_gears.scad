@@ -196,7 +196,7 @@ module gear1(chamfer_gradient = tan(45)) {
     //Variables
     radius = gear_radius(gear1_teeth, circular_pitch);
     inner_radius = gear_inner_radius(gear1_teeth, circular_pitch);
-    outer_radius = gear_outer_radius(gear1_teeth, circular_pitch);
+    outer_radius = gear_outer_radius(gear1_teeth, circular_pitch)+1;
     base_chamfer = (outer_radius - radius) / chamfer_gradient;
     shaft_radius = gear1_shaft_diameter/2;
     setnut_distance = shaft_radius;//(shaft_radius + radius - gear1_setnut_height)/2;
