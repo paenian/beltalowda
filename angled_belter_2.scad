@@ -22,7 +22,7 @@ bearing_inset = in;
 //roller drive variables
 small_teeth = 13;
 motor_shaft_rad = 5/2+.2;
-big_teeth = 41;
+big_teeth = 61;
 gear_thick = 13;
 distance_between_axles = 37;
 circular_pitch = 360*distance_between_axles/(small_teeth+big_teeth);
@@ -63,7 +63,7 @@ bed_offset_rear = -89;
 
 extruder_offset = y_beam_offset - [0,motor_w*1.5,motor_w/2];
 
-part = 10;
+part = 21;
 
 if(part == 1){
     projection(){
