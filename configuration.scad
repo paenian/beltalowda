@@ -19,7 +19,7 @@ pulley_flange_rad = 18/2;
 bed_inset = 4;
 bed_thick = 2.3;
 heater_thick = 2.2;
-insulation_thick = .1;
+insulation_thick = 1;
 bed_lift = heater_thick+insulation_thick;
 
 eccentric_rad = 7.3/2;

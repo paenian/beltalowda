@@ -36,17 +36,17 @@ slot_width = 1;
 
 $fn=36;
 
-module corner_foot(height = 30){
+module corner_foot(height = 40, width = 30){
     difference(){
         union(){
-            rotate([0,90,0]) rotate_extrude(){
-                translate([height,0,0]) scale([.5,1.1,1]) rotate([0,0,22.5]) circle(r=beam/2, $fn=8);
+            scale([1,width/height,1]) rotate([0,90,0]) rotate_extrude(){
+                translate([height,0,0]) scale([.5,1.25,1]) rotate([0,0,22.5]) circle(r=beam/2, $fn=8);
             }
-            translate([0,0,0]) rotate([90,0,0]) scale([1.2,.25,1]) rotate([0,0,30]) cylinder(r=beam/2, h=height*2, center=true, $fn=6);
+            translate([0,0,0]) rotate([90,0,0]) scale([1.2,.25,1]) rotate([0,0,30]) cylinder(r=beam/2, h=width*2, center=true, $fn=6);
         }
         
         //screwholes
-        for(i=[0,1]) mirror([0,i,0]) translate([0,height,0]) {
+        for(i=[0,1]) mirror([0,i,0]) translate([0,width,0]) {
             rotate([0,0,180]) cap_cylinder(r=m5_rad, h=100, center=true);
             translate([0,0,-50-wall*2]) rotate([0,0,180]) cap_cylinder(r=m5_cap_rad, h=100, center=true);
         }

@@ -63,7 +63,7 @@ bed_offset_rear = -89;
 
 extruder_offset = y_beam_offset - [0,motor_w*1.5,motor_w/2];
 
-part = 20;
+part = 10;
 
 if(part == 1){
     projection(){
@@ -108,7 +108,11 @@ if(part == 10){
 }
 
 if(part == 11){
-    bed_center_support();
+    bed_rear_support();
+}
+
+if(part == 12){
+    bed_front_support();
 }
 
 if(part == 20){
@@ -378,14 +382,14 @@ module bed_clamp(){
     difference(){
         union(){
             //mounting lugs
-            hull() for(i=[-beam, 0, beam]) translate([i,-beam/2,0]) {
+            hull() for(i=[-beam, 0, beam*1]) translate([i,-beam/2,0]) {
                 cylinder(r=m5_cap_rad+wall-1, h=bracket_thick, center=true);
                 cylinder(r=m5_cap_rad+wall, h=bracket_thick/2, center=true);
-                translate([0,beam/2,0]) cylinder(r=m5_cap_rad+wall, h=bracket_thick, center=true);
+                translate([0,beam,0]) cylinder(r=m5_cap_rad+wall, h=bracket_thick, center=true);
             }
             
             //bed seat
-            *translate([0,0,]) cube([beam*3,15,bed_lift], center=true);
+            //translate([0,0,]) cube([beam*3,15,bed_lift], center=true);
         }
         
         //screwholes
@@ -396,16 +400,38 @@ module bed_clamp(){
         }
         
         //bed seat
-        translate([0,m5_rad-beam/2+beam/2,bed_lift]) cube([beam*3.25,beam,bracket_thick], center=true);
+        translate([0,beam,bed_lift]) cube([beam*3.25,beam*2,bracket_thick], center=true);
     }
 }
 
-module bed_center_support(){
+module bed_front_support(){
+    difference(){
+        union(){
+            //mounting lugs
+            hull() for(i=[-beam*3, 0, beam*3]) translate([i,-beam/2,0]) {
+                cylinder(r=m5_cap_rad+wall-.5, h=bed_lift, center=true);
+                cylinder(r=m5_cap_rad+wall, h=bed_lift-1, center=true);
+            }
+            
+            //line it up with the t-slot
+            hull() for(i=[-beam*3, 0, beam*3]) translate([i,-beam/2,bed_lift/2]) {
+                cylinder(r=3, h=2.75, center=true);
+            }
+        }
+        
+        //screwholes
+        for(i=[-beam*2, 0, beam*2]) translate([i,-beam/2,0]){
+            cylinder(r=m3_rad, h=bracket_thick+1, center=true);
+        }
+    }
+}
+
+module bed_rear_support(){
     slot = 2;
     difference(){
         union(){
             //mounting lugs
-            hull() for(i=[-beam, 0, beam]) translate([i,-beam/2-slot,0]) {
+            hull() for(i=[-beam, 0, beam*1]) translate([i,-beam/2-slot,0]) {
                 cylinder(r=m5_cap_rad+wall-1, h=bracket_thick, center=true);
                 cylinder(r=m5_cap_rad+wall, h=bracket_thick/2, center=true);
                 translate([0,beam/2+slot-m5_cap_rad-wall+bed_lift,0]) cylinder(r=m5_cap_rad+wall, h=bracket_thick, center=true);
