@@ -63,7 +63,7 @@ bed_offset_rear = -89;
 
 extruder_offset = y_beam_offset - [0,motor_w*1.5,motor_w/2];
 
-part = 21;
+part = 77;
 
 if(part == 1){
     projection(){
@@ -97,6 +97,10 @@ if(part == 6){
 if(part == 7){
     y_gantry();
     translate([0,16,-bracket_thick/2]) groovemount_screw_clamp();
+}
+
+if(part == 77){
+    translate([0,16,-bracket_thick/2]) groovemount_clamp_fan();
 }
 
 if(part == 8){
@@ -822,5 +826,96 @@ module groovemount_screw_clamp(){
                translate([0,0,4.25]) cylinder(r=rad+1, h=6-slop*3);
            }
        }
+    }
+}
+
+
+module groovemount_clamp_fan(){
+    groove_lift = 5;
+    wall = 3;
+    dia = 16;
+    rad = dia/2+slop;
+    mink = 1;
+    inset = 3;
+    groove = 9+2;
+    thick = rad-2+groove_lift;
+    length = 10;
+    
+    hs_rad = 23/2;
+    hs_height = 26;
+    hotend_inset = [0,0,rad+groove_lift];
+    
+    
+    fan_screw_sep = 24;
+    fan_screw_rad = 3/2+slop;
+    fan_corner_rad = 3.25;
+    fan_rad = 27/2;
+    fan_width = fan_screw_sep+fan_corner_rad*2;
+    
+    difference(){
+        union(){
+            //screwhole mounts
+            hull() for(i=[0,1]) mirror([i,0,0]) translate([screw_mount_screw_sep/2,7,0]) cylinder(r1=screw_mount_rad+.5, r2=screw_mount_rad, h=thick);
+                
+            //extruder fan mount
+            translate([0,hs_height+1,0]){
+                 hull() for(i=[0,1]) for(j=[0,1]) mirror([i,0,0]) mirror([0,j,0]) translate([fan_screw_sep/2, fan_screw_sep/2, 0])
+                    cylinder(r=fan_corner_rad, h=thick);
+            
+                translate(hotend_inset) rotate([90,0,0]) cylinder(r=hs_rad+wall, h=fan_screw_sep, center=true);
+            }
+            
+            //cooling fan mount
+            translate([25,hs_height+1,fan_screw_sep/2+fan_corner_rad-.5]) rotate([0,90,0]) rotate([60,0,0]) {
+                hull() for(i=[0,1]) for(j=[0,1]) mirror([i,0,0]) mirror([0,j,0]) translate([fan_screw_sep/2, fan_screw_sep/2, 0])
+                    cylinder(r=fan_corner_rad, h=thick/2);
+            }
+            
+            //duct
+        }
+        
+        //screwholes
+        for(i=[0,1]) mirror([i,0,0]) translate([screw_mount_screw_sep/2,7,-.1]) {
+            cylinder(r1=4.25, r2=3.75, h=groove_lift);
+            translate([0,0,groove_lift+.2]) cylinder(r=m3_rad+slop, h=rad);
+        }
+        
+       //hotend inset
+       render() translate([0,3,rad+groove_lift]) rotate([-90,0,0]) {           
+           //top part
+           translate([0,0,-inset-2]) hull(){
+               cap_cylinder(r=4+slop, h=wall);
+               translate([0,-3,0]) cap_cylinder(r=4+slop, h=wall);
+           }
+           
+           //the groove
+           translate([0,0,-inset]) hull(){
+               cap_cylinder(r=12/2+slop*3, h=13, $fn=90);
+               translate([0,-3,0]) cap_cylinder(r=12/2+slop*3, h=13, $fn=90);
+           }
+           
+           translate([0,0,-inset]) difference(){
+               cap_cylinder(r=rad, h=4+groove+.2, $fn=90);
+               translate([0,0,4.25]) cylinder(r=rad+1, h=6-slop*3);
+           }
+       }
+       
+       //extruder fan duct
+        translate([0,hs_height+1,0]) {
+            translate(hotend_inset) translate([0,wall,0]) rotate([90,0,0]) cylinder(r=hs_rad, h=fan_screw_sep+fan_corner_rad+wall*2, center=true);
+            hull() {
+                //actual heatsink
+                #translate(hotend_inset) rotate([90,0,0]) cylinder(r=hs_rad, h=fan_screw_sep+fan_corner_rad, center=true);
+                
+                for(i=[-rad-groove_lift]) translate([0,0,i]) translate(hotend_inset) cylinder(r=fan_rad, h=.1, center=true);
+            }
+            for(i=[0,1]) for(j=[0,1]) mirror([i,0,0]) mirror([0,j,0]) translate([fan_screw_sep/2, fan_screw_sep/2, 0])
+                cylinder(r=fan_screw_rad, h=thick*7, center=true);
+        }
+       
+       
+       //slice off the bottom and the top
+       translate([0,0,-100]) cube([200,200,200], center=true);
+       translate([0,0,100+rad*2.25]) cube([hs_rad*2+wall*1.5,200,200], center=true);
     }
 }
