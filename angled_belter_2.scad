@@ -878,11 +878,11 @@ module groovemount_clamp_fan(){
             hull(){
                 translate([27,hs_height+1,fan_screw_sep/2+fan_corner_rad-.5]) rotate([0,90,0]) rotate([70,0,0]) 
                     cylinder(r=fan_rad+wall, h=thick/2);
-                translate([cooling_fan_offset,hs_height+hs_height,fan_rad/2+wall/2-.5]) cylinder(r=fan_rad/2+wall, h=fan_rad+wall, center=true);
+                translate([cooling_fan_offset,hs_height*1.5,fan_rad/2+wall/2-.5]) cylinder(r=fan_rad/2+wall, h=fan_rad+wall, center=true);
             }
             hull(){
-                translate([cooling_fan_offset,hs_height+hs_height,fan_rad/2+wall/2-.5]) cylinder(r=fan_rad/2+wall, h=fan_rad+wall, center=true);
-                translate([cooling_fan_offset-11,hs_height+hs_height+7,rad+groove_lift]) cylinder(r=fan_rad/4+wall, h=fan_rad/2+wall*2, center=true);
+                translate([cooling_fan_offset,hs_height*1.5,fan_rad/2+wall/2-.5]) cylinder(r=fan_rad/2+wall, h=fan_rad+wall, center=true);
+                translate([cooling_fan_offset-11,hs_height*2+4,rad+groove_lift]) cylinder(r=fan_rad/4+wall, h=fan_rad/2+wall*2, center=true);
             }
         }
         
@@ -939,16 +939,21 @@ module groovemount_clamp_fan(){
         hull(){
             translate([27,hs_height+1,fan_screw_sep/2+fan_corner_rad-.5]) rotate([0,90,0]) rotate([70,0,0]) 
                 cylinder(r=fan_rad, h=thick/2+.2);
-            translate([cooling_fan_offset,hs_height+hs_height,fan_rad/2+wall/2-.5]) cylinder(r=fan_rad/2, h=fan_rad, center=true);
+            translate([cooling_fan_offset,hs_height*1.5,fan_rad/2+wall/2-.5]) cylinder(r=fan_rad/2, h=fan_rad, center=true);
         }
         hull(){
-            translate([cooling_fan_offset,hs_height+hs_height,fan_rad/2+wall/2-.5]) cylinder(r=fan_rad/2, h=fan_rad, center=true);
-            translate([cooling_fan_offset-17,hs_height+hs_height+9,rad+groove_lift]) cylinder(r=fan_rad/4, h=fan_rad/2+wall, center=true);
+            translate([cooling_fan_offset,hs_height*1.5,fan_rad/2+wall/2-.5]) cylinder(r=fan_rad/2, h=fan_rad, center=true);
+            translate([cooling_fan_offset-11,hs_height*2+3,rad+groove_lift]) cylinder(r=fan_rad/4, h=fan_rad/2+wall, center=true);
+        }
+        hull(){ //let the air out :-)
+            #translate([cooling_fan_offset-11,hs_height*2+3,rad+groove_lift]) cylinder(r=fan_rad/4, h=fan_rad/2+wall, center=true);
+            #translate([cooling_fan_offset-11-10,hs_height*2+3+2.5,rad+groove_lift]) cylinder(r=fan_rad/4, h=fan_rad/2+wall, center=true);
         }
        
        
        //slice off the bottom and the top
        translate([0,0,-100]) cube([200,200,200], center=true);
        translate([0,0,100+rad*2.25]) cube([hs_rad*2+wall*1.5,200,200], center=true);
+        #translate([0,100+hotend_height-1,0]) cube([200,200,200], center=true);
     }
 }
