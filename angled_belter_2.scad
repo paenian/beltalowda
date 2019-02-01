@@ -63,12 +63,12 @@ bed_offset_rear = -89;
 
 extruder_offset = y_beam_offset - [0,motor_w*1.5,motor_w/2];
 
-part = 77;
+part = 1;
 
 if(part == 1){
     projection(){
         rotate([0,90,0]) translate([-length/2+beam,0,beam/2+.1]) spacer_plate_drive();
-        rotate([0,-90,0]) translate([length/2-beam,0,beam/2+.1]) spacer_plate_idler();
+        rotate([0,-90,0]) translate([length/2-beam,0,beam/2+.1]) spacer_plate_drive();
     }
 }
 
@@ -180,7 +180,7 @@ module rods_and_rails(solid = 0, z_rollers=true, draw_y_beam = true){
     translate(x_motor_offset) rotate([0,90,0]) {
         cylinder(r=4, h=length, center=true);
         if(solid != 1) {
-            for(i=[0,1]) mirror([0,0,i]) translate([0,0,length/2-beam]) motor_holes();
+            for(i=[0,1]) mirror([0,0,i]) translate([0,0,length/2-beam]) motor_holes(slot=0);
             
             translate([0,0,bracket_thick]) mirror([0,0,1]) rotate([0,0,90+angle/2]) backlash_nut();           
         }
@@ -193,7 +193,7 @@ module rods_and_rails(solid = 0, z_rollers=true, draw_y_beam = true){
             translate([0,length/2-y_beam_inset,0]) rotate([90,0,0]) linear_rail(solid = solid, beam = draw_y_beam);
             %translate([0,motor_w+37,0]) rotate([0,0,-90]) y_gantry();
             
-            translate(y_motor_offset) motor_holes();
+            translate(y_motor_offset) motor_holes(slot=0);
         }
     }
     
@@ -208,7 +208,7 @@ module rods_and_rails(solid = 0, z_rollers=true, draw_y_beam = true){
         z_angle = 25;
         translate(roller_offset_rear+[length/2-beam,0,0])
         rotate([z_angle,0,0]) translate([0,0,distance_between_axles]) rotate([-z_angle,0,0])
-        rotate([0,90,0]) motor_holes();
+        rotate([0,90,0]) motor_holes(slot=0);
     }
     
     echo("roller sep = ");
@@ -504,7 +504,7 @@ module y_plate(front = false){
     difference(){
         union(){
             hull(){
-                translate(x_rail_offset_rear+[0,5,beam*1.5+linear_rail_height/2+rad]) rotate([0,90,0]) cylinder(r=rad, h=bracket_thick, center=true);
+                translate(x_rail_offset_rear+[0,5,beam*1.5+linear_rail_height/2+rad]) rotate([0,90,0]) cylinder(r=rad, h999999=bracket_thick, center=true);
                 translate(x_rail_offset_front+[0,0,beam*1.5+linear_rail_height/2]) rotate([angle,0,0]) translate([0,0,rad]) rotate([0,90,0]) cylinder(r=rad, h=bracket_thick, center=true);
                     
 
@@ -520,9 +520,9 @@ module y_plate(front = false){
         rods_and_rails(solid = 0, z_rollers = false, draw_y_beam = front);
         
         //if(front == true){
-            translate(y_beam_offset) rotate([0,90,0]) rotate([0,0,angle]) translate(y_motor_offset) motor_holes();
+            translate(y_beam_offset) rotate([0,90,0]) rotate([0,0,angle]) translate(y_motor_offset) motor_holes(slot=0);
         
-            translate(extruder_offset) rotate([0,90,0]) rotate([0,0,angle]) translate(y_motor_offset) motor_holes();
+            translate(extruder_offset) rotate([0,90,0]) rotate([0,0,angle]) translate(y_motor_offset) motor_holes(slot=0);
         //}else{
             //translate(y_beam_offset) rotate([0,90,0]) rotate([0,0,angle]) translate(y_motor_offset) motor_body(extra=.25, thick=bracket_thick*3);
         

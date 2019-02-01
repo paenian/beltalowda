@@ -4,7 +4,7 @@ include <configuration.scad>
 
 $fn=72;
 
-part = 4;
+part = 1;
 
 if(part == 1){
     rotate([0,90,0]) rod_mount(rod_rad = 5.25, extrusion=true);
@@ -209,7 +209,7 @@ module rod_mount(extrusion=false, width=30){
                 
                 if(extrusion == true)
                     translate([0,0,-rod_rad/2+4]) rotate([0,90,0]) {
-                    cylinder(r=10, h=screw_sep+screw_rad*6, center=true);
+                    cylinder(r=10, h=width, center=true);
                 }
             }
             
@@ -229,7 +229,7 @@ module rod_mount(extrusion=false, width=30){
         }
         
         //screwholes
-        for(i=[-1,1]) mirror([1,0,0]) translate([i*screw_sep/2,0,wall*2.75]){
+        for(i=[-1,1]) mirror([1,0,0]) translate([i*screw_sep/2,0,wall*3.5]){
             cap_cylinder(r=screw_rad*2, h=wall*2, $fn=36, center=false);
             cap_cylinder(r=screw_rad-.3, h=in*2, center=true);
         }
