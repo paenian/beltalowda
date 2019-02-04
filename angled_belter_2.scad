@@ -173,7 +173,6 @@ module rods_and_rails(solid = 0, z_rollers=true, draw_y_beam = true){
             //beam screwholes
             for(i=[-beam/2, beam/2]) translate([i,0,-beam*2]) cylinder(r=m5_rad, h=length+beam);
         }
-        
     }
     
     //x axis
