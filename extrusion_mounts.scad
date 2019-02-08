@@ -4,7 +4,7 @@ include <configuration.scad>
 
 $fn=72;
 
-part = 1;
+part = 5;
 
 if(part == 1){
     rotate([0,90,0]) rod_mount(rod_rad = 5.25, extrusion=true);
@@ -22,6 +22,10 @@ if(part == 4){
     rotate([0,90,0]) corner_foot();
 }
 
+if(part == 5){
+    endstop_mount();
+}
+
 //exit_ramp();
 
 
@@ -35,6 +39,38 @@ roller_rad = 43/2+1;
 slot_width = 1;
 
 $fn=36;
+
+module endstop_mount(){
+    wall = 2;
+    endstop_size = [19.7, 10.6, 6.6];
+    screw_offset = 19;
+    difference(){
+        union(){
+            translate([0,0,endstop_size[2]/2+wall]) hull(){
+                cube(endstop_size+[wall*2,0,0], center=true);
+                cube(endstop_size+[0,wall,0], center=true);
+                cube(endstop_size+[0,0,wall*2], center=true);
+            }
+            
+            //screw plate
+            hull(){
+                translate([0,0,wall/2]) cube([endstop_size[0],endstop_size[1],wall], center=true);
+                translate([0,screw_offset,0]) hull(){
+                    cylinder(r=m3_cap_rad+wall, h=wall/2);
+                    cylinder(r=m3_cap_rad+wall/2, h=wall);
+                }
+            }
+            
+        }
+        
+        //endstop hole
+        translate([0,-wall/2,endstop_size[2]/2+1]) cube(endstop_size+[slop*2,slop*2,slop*2], center=true);
+        translate([0,wall/2,endstop_size[2]/2+1]) cube(endstop_size-[1,-slop,1], center=true);
+        
+        //m3 screwhole
+        translate([0,screw_offset,0]) cylinder(r=m3_rad+.1, h=17, center=true);
+    }
+}
 
 module corner_foot(height = 40, width = 30){
     difference(){
