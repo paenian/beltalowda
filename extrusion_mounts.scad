@@ -26,6 +26,10 @@ if(part == 5){
     rotate([180,0,0]) drill_guide(holes = [0,10,30], length=80);
 }
 
+if(part == 6){
+    endstop_mount();
+}
+
 //exit_ramp();
 
 
@@ -39,8 +43,6 @@ roller_rad = 43/2+1;
 slot_width = 1;
 
 $fn=36;
-
-
 
 module drill_guide(holes = [10,30], wall = 5, length=60, slop=.2, hole_rad=3.5){
     beam = 20;
@@ -63,6 +65,36 @@ module drill_guide(holes = [10,30], wall = 5, length=60, slop=.2, hole_rad=3.5){
             translate([0,wall/2+slop,-.5]) rotate([90,0,0]) extrusion(slop = .5, length=length);
             translate([0,wall/2+slop,-wall*2]) rotate([90,0,0]) extrusion(slop = 1, length=length);
         }
+
+module endstop_mount(){
+    wall = 2;
+    endstop_size = [19.7, 10.6, 6.6];
+    screw_offset = 19;
+    difference(){
+        union(){
+            translate([0,0,endstop_size[2]/2+wall]) hull(){
+                cube(endstop_size+[wall*2,0,0], center=true);
+                cube(endstop_size+[0,wall,0], center=true);
+                cube(endstop_size+[0,0,wall*2], center=true);
+            }
+            
+            //screw plate
+            hull(){
+                translate([0,0,wall/2]) cube([endstop_size[0],endstop_size[1],wall], center=true);
+                translate([0,screw_offset,0]) hull(){
+                    cylinder(r=m3_cap_rad+wall, h=wall/2);
+                    cylinder(r=m3_cap_rad+wall/2, h=wall);
+                }
+            }
+            
+        }
+        
+        //endstop hole
+        translate([0,-wall/2,endstop_size[2]/2+1]) cube(endstop_size+[slop*2,slop*2,slop*2], center=true);
+        translate([0,wall/2,endstop_size[2]/2+1]) cube(endstop_size-[1,-slop,1], center=true);
+        
+        //m3 screwhole
+        translate([0,screw_offset,0]) cylinder(r=m3_rad+.1, h=17, center=true);
     }
 }
 
