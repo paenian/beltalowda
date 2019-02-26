@@ -4,7 +4,7 @@ include <configuration.scad>
 
 $fn=72;
 
-part = 1;
+part = 5;
 
 if(part == 1){
     rotate([0,90,0]) rod_mount(rod_rad = 5.25, extrusion=true);
@@ -22,6 +22,10 @@ if(part == 4){
     rotate([0,90,0]) corner_foot();
 }
 
+if(part == 5){
+    rotate([180,0,0]) drill_guide(holes = [0,10,30], length=80);
+}
+
 //exit_ramp();
 
 
@@ -35,6 +39,32 @@ roller_rad = 43/2+1;
 slot_width = 1;
 
 $fn=36;
+
+
+
+module drill_guide(holes = [10,30], wall = 5, length=60, slop=.2, hole_rad=3.5){
+    beam = 20;
+    difference(){
+        union(){
+            hull(){
+                translate([0,0,wall]) cube([beam+wall, length+wall, beam+wall*2], center=true);
+                translate([0,0,wall]) cube([beam+wall*3, length+wall, beam], center=true);
+            }
+        }
+        
+        //drill holes
+        for(i=holes){
+            translate([0,-length/2+wall/2+i,0]) cylinder(r=hole_rad, h=length*2, center=true);
+        }
+        
+        //extrusion
+        translate([0,wall/2+slop,0]) rotate([90,0,0]) extrusion(slop = 1, length=length);
+        hull() {
+            translate([0,wall/2+slop,-.5]) rotate([90,0,0]) extrusion(slop = .5, length=length);
+            translate([0,wall/2+slop,-wall*2]) rotate([90,0,0]) extrusion(slop = 1, length=length);
+        }
+    }
+}
 
 module corner_foot(height = 40, width = 30){
     difference(){
