@@ -4,7 +4,7 @@ include <configuration.scad>
 
 $fn=72;
 
-part = 5;
+part = 44;
 
 if(part == 1){
     rotate([0,90,0]) rod_mount(rod_rad = 5.25, extrusion=true);
@@ -20,6 +20,10 @@ if(part == 3){
 
 if(part == 4){
     rotate([0,90,0]) corner_foot();
+}
+
+if(part == 44){
+    rotate([0,90,0]) corner_foot_doubled();
 }
 
 if(part == 5){
@@ -65,6 +69,8 @@ module drill_guide(holes = [10,30], wall = 5, length=60, slop=.2, hole_rad=3.5){
             translate([0,wall/2+slop,-.5]) rotate([90,0,0]) extrusion(slop = .5, length=length);
             translate([0,wall/2+slop,-wall*2]) rotate([90,0,0]) extrusion(slop = 1, length=length);
         }
+    }
+}
 
 module endstop_mount(){
     wall = 2;
@@ -121,6 +127,38 @@ module corner_foot(height = 40, width = 30){
         
         //flatten front/back
         for(i=[0,1]) mirror([i,0,0]) translate([100+beam/2-.1,0,0]) cube([200,200,200], center=true);
+    }
+}
+
+module corner_foot_doubled(height = 70, width = 45){
+    difference(){
+        union(){
+            for(i=[0,1]) mirror([i,0,0]) translate([beam/2,0,0]){
+                scale([1,width/height,1]) rotate([0,90,0]) rotate_extrude(){
+                    translate([height,0,0]) scale([.666,1.25,1]) rotate([0,0,22.5]) circle(r=beam/2, $fn=8);
+                }
+                translate([0,0,0]) rotate([90,0,0]) scale([1.2,.25,1]) rotate([0,0,30]) cylinder(r=beam, h=width*2+beam/2, center=true, $fn=6);
+                for(i=[0,1]) mirror([0,i,0]) translate([0,width+beam/4,0]) {
+                    rotate([0,0,180]) cap_cylinder(r=beam/2, h=15, center=true);
+                }
+            }
+        }
+        
+        //screwholes
+        for(i=[0,1]) mirror([i,0,0]) translate([beam/2,0,0])
+            for(i=[0,1]) mirror([0,i,0]) translate([0,width+beam/4,0]) {
+                rotate([0,0,180]) cap_cylinder(r=m5_rad, h=100, center=true);
+                translate([0,0,-50-wall*2]) rotate([0,0,180]) cap_cylinder(r=m5_cap_rad, h=100, center=true);
+            }
+        
+        //clear out the top
+        translate([0,0,100+.75]) cube([200,200,200], center=true);
+        
+        //inset into the beam a little
+        for(i=[0,1]) mirror([i,0,0]) translate([beam/2,0,beam/2]) rotate([90,0,0]) extrusion(length = width*3, slop = .5);
+        
+        //flatten front/back
+        for(i=[0,1]) mirror([i,0,0]) translate([100+beam-.1,0,0]) cube([200,200,200], center=true);
     }
 }
 
